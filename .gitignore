@@ -115,3 +115,7 @@ InitTestScene*.unity*
 
 # Claude Code personal settings
 .claude/settings.local.json
+
+# Python
+__pycache__/
+Tools/Art/painted/ui/neon/*_src.png

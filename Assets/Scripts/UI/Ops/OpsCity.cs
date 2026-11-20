@@ -14,8 +14,8 @@ namespace Sector.UI
     public partial class OpsScreen
     {
         const float LeaderLength = 30f;
-        // The AI operations center (the district office tower with the cyan ring) in image fractions.
-        static readonly Vector2 CenterPin = new Vector2(0.497f, 0.40f);
+        // The AI operations center (the tower with the cyan ring, the 관리 district's pin) in image fractions.
+        static readonly Vector2 CenterPin = new Vector2(0.507f, 0.41f);
 
         sealed class ZoneMarker
         {
@@ -25,6 +25,8 @@ namespace Sector.UI
             public Label State;
             public Vector2 Anchor;
             public bool Open;
+            public bool InView;   // the pin is inside the clear window
+            public bool Shown;    // its name tag is up (see TickMap)
         }
 
         sealed class Ripple
@@ -184,6 +186,7 @@ namespace Sector.UI
             var tint = new Color(baseTint.r * lightLevel, baseTint.g * lightLevel, Mathf.Min(1f, baseTint.b * (lightLevel * 0.9f + 0.1f)), 1f);
             foreach (var layer in cityLayers)
                 layer.style.unityBackgroundImageTintColor = tint;
+            TickDistrictLayers(dt, tint);
 
             foreach (var (dot, from, to, speed, phase) in drones)
             {
@@ -233,8 +236,24 @@ namespace Sector.UI
 
         // ------------------------------------------------------------------ pan and zoom
 
-        const float MaxZoom = 2.6f;
-        float zoom = 1f, zoomTarget = 1f;
+        // Zoom 1 shows the whole painting (the districts plus the city around them); HomeZoom frames the districts
+        // (the painting's middle 75%).
+        const float MinZoom = 1f, HomeZoom = 1.2f, MaxZoom = 3.4f;
+        float zoom = HomeZoom, zoomTarget = HomeZoom;
+
+        void ResetView()
+        {
+            zoomTarget = HomeFor;
+            // The full map sits a little low so the top districts clear the layer buttons.
+            panTarget = mapMode ? new Vector2(0f, root.contentRect.height * 0.05f) : Vector2.zero;
+        }
+
+        // Slide the painting so a district's pin comes to the middle of the clear window.
+        void CenterOn(int zone)
+        {
+            var window = zoneLayer.contentRect;
+            panTarget += window.center - PinAt(ZonePins[zone]);
+        }
         Vector2 pan, panTarget;
         bool dragging;
         Vector2 dragLast, dragStart;
@@ -247,8 +266,7 @@ namespace Sector.UI
                     return;
                 if (e.clickCount == 2)
                 {
-                    zoomTarget = 1f;
-                    panTarget = Vector2.zero;
+                    ResetView();
                     return;
                 }
                 dragging = true;
@@ -277,7 +295,7 @@ namespace Sector.UI
             {
                 if (currentPage != Page.Overview)
                     return;
-                float next = Mathf.Clamp(zoomTarget * (e.delta.y > 0 ? 0.88f : 1.14f), 1f, MaxZoom);
+                float next = Mathf.Clamp(zoomTarget * (e.delta.y > 0 ? 0.88f : 1.14f), MinZoom, MaxZoom);
                 // keep the point under the cursor in place
                 var r = root.contentRect;
                 var cursor = (Vector2)e.mousePosition - new Vector2(r.width / 2f, r.height / 2f);
@@ -293,17 +311,24 @@ namespace Sector.UI
             var screen = root.contentRect;
             if (screen.width <= 0f)
                 return;
-            // A little wider than the screen even at 1x, so the city can always slide sideways a bit.
-            float w = Mathf.Max(screen.width * 1.16f, screen.height * CityAspect), h = w / CityAspect;
+            // At zoom 1 the whole painting just covers the screen.
+            float w = Mathf.Max(screen.width, screen.height * CityAspect), h = w / CityAspect;
             cityView.style.width = w;
             cityView.style.height = h;
             cityView.style.left = (screen.width - w) / 2f;
             cityView.style.top = (screen.height - h) / 2f;
 
             zoom = Mathf.Lerp(zoom, zoomTarget, Mathf.Min(1f, dt * 10f));
+            // The painting's edge may slide in as far as the clear window's edge, so a district on the rim can reach the
+            // window; what shows past the edge stays behind the side panels and the top bar.
+            var window = root.WorldToLocal(zoneLayer.worldBound);
+            float slackL = Mathf.Max(0f, window.xMin - screen.xMin), slackR = Mathf.Max(0f, screen.xMax - window.xMax);
+            float slackT = Mathf.Max(0f, window.yMin - screen.yMin), slackB = Mathf.Max(0f, screen.yMax - window.yMax);
+            if (float.IsNaN(window.width) || window.width <= 0f || currentPage != Page.Overview)
+                slackL = slackR = slackT = slackB = 0f;
             Vector2 Clamp(Vector2 v, float z) => new Vector2(
-                Mathf.Clamp(v.x, -(w * z - screen.width) / 2f, (w * z - screen.width) / 2f),
-                Mathf.Clamp(v.y, -(h * z - screen.height) / 2f, (h * z - screen.height) / 2f));
+                Mathf.Clamp(v.x, -(w * z - screen.width) / 2f - slackR, (w * z - screen.width) / 2f + slackL),
+                Mathf.Clamp(v.y, -(h * z - screen.height) / 2f - slackB, (h * z - screen.height) / 2f + slackT));
             panTarget = Clamp(panTarget, zoomTarget);
             pan = dragging ? Clamp(pan, zoom) : Vector2.Lerp(pan, panTarget, Mathf.Min(1f, dt * 10f));
             pan = Clamp(pan, zoom);
@@ -323,7 +348,7 @@ namespace Sector.UI
             // Data lines from the operations center, only where it matters (rising tension, an event, the district in focus).
             foreach (var m in markers)
             {
-                if (m.Zone == 2 || !m.Open || m.Tag.style.display == DisplayStyle.None)
+                if (m.Zone == 2 || !m.Open || !m.Shown)
                     continue;
                 bool alarm = ripples.Any(r => r.Zone == m.Zone && r.Color == Bad);
                 if (!alarm && m.Zone != hoverZone && m.Zone != selectedZone && session.TensionStage(m.Zone) < 2)
@@ -332,22 +357,25 @@ namespace Sector.UI
                 Dashes(p, center, m.Anchor, color, m.Open ? cityTime * 40f : 0f);
             }
 
+            // Pins (ground dot, leader line, pulse) only on the full map; elsewhere the boundaries carry the districts.
             foreach (var m in markers)
             {
-                if (m.Tag.style.display == DisplayStyle.None)
+                if (!m.Shown)
                     continue;
                 var a = m.Anchor;
                 int stage = m.Open ? session.TensionStage(m.Zone) : 0;
                 var c = !m.Open ? new Color(0.6f, 0.65f, 0.72f) : stage >= 2 ? StageColor(stage) : Palette.Cyan;
-                // leader line up to the tag
-                p.strokeColor = new Color(c.r, c.g, c.b, m.Open ? 0.8f : 0.4f);
-                p.lineWidth = 1.2f;
-                p.BeginPath();
-                p.MoveTo(a);
-                p.LineTo(a + new Vector2(0f, -LeaderLength + 6f));
-                p.Stroke();
+                if (m.Shown)
+                {
+                    p.strokeColor = new Color(c.r, c.g, c.b, m.Open ? 0.8f : 0.4f);
+                    p.lineWidth = 1.2f;
+                    p.BeginPath();
+                    p.MoveTo(a);
+                    p.LineTo(a + new Vector2(0f, -LeaderLength + 6f));
+                    p.Stroke();
+                }
                 // pulse ring
-                if (m.Open)
+                if (m.Open && m.Shown)
                 {
                     float pulse = (cityTime * 0.6f + m.Zone * 0.33f) % 1f;
                     p.strokeColor = new Color(c.r, c.g, c.b, 0.6f * (1f - pulse));

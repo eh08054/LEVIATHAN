@@ -19,12 +19,12 @@ namespace Sector.UI
         static readonly Color Real = new Color32(247, 147, 59, 255);
         static readonly Color Warn = new Color32(238, 92, 92, 255);
 
-        // Each district's landmark on city_main_v5 (image fractions, 3072 x 2048), Society.Zones order.
+        // Each district's landmark on city_main_v7 (image fractions, 4096 x 2731), Society.Zones order.
         static readonly Vector2[] ZonePins =
         {
-            new Vector2(0.515f, 0.55f), new Vector2(0.245f, 0.50f), new Vector2(0.515f, 0.38f), new Vector2(0.27f, 0.74f),
-            new Vector2(0.80f, 0.78f), new Vector2(0.17f, 0.30f), new Vector2(0.20f, 0.14f), new Vector2(0.57f, 0.14f),
-            new Vector2(0.78f, 0.26f), new Vector2(0.83f, 0.54f), new Vector2(0.86f, 0.13f),
+            new Vector2(0.505f, 0.5f), new Vector2(0.30f, 0.465f), new Vector2(0.507f, 0.41f), new Vector2(0.31f, 0.69f),
+            new Vector2(0.72f, 0.71f), new Vector2(0.27f, 0.355f), new Vector2(0.285f, 0.24f), new Vector2(0.53f, 0.225f),
+            new Vector2(0.70f, 0.32f), new Vector2(0.715f, 0.50f), new Vector2(0.765f, 0.235f),
         };
         const float CityAspect = 1536f / 1024f;
         VisualElement cityView;
@@ -169,7 +169,7 @@ namespace Sector.UI
             var caption = Add(window, "city-caption");
             caption.pickingMode = PickingMode.Ignore;
             Text(caption, "SECTOR 7 시범 운영 구역", "city-title");
-            Text(caption, "드래그로 이동 · 휠로 확대 · 지구를 누르면 정보", "city-sub");
+            Text(caption, "드래그로 이동 · 휠로 확대 · 더블클릭은 처음 위치 · 지구에 마우스를 올리면 정보", "city-sub");
             zoneLayer = Add(window, "zones");
             zoneLayer.pickingMode = PickingMode.Ignore;
             BuildLivingCity(window);

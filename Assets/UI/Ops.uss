@@ -828,6 +828,7 @@
     top: 0;
     right: 0;
     bottom: 0;
+    overflow: hidden; /* district boundaries stop at the clear window, never over the side panels */
 }
 
 .pin {
@@ -4222,6 +4223,31 @@
     background-color: rgba(40, 24, 80, 0.85);
 }
 .crisis-badge-text { font-size: 11px; -unity-font-style: bold; color: var(--text-1); }
+
+/* per-district layers over the painting (OpsMap.BuildDistrictLayers): placed in image fractions inside the backdrop */
+.district-layers { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+.district-layer { position: absolute; background-size: 100% 100%; }
+.district-dim { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background-color: rgba(4, 8, 18, 0.6); }
+
+/* a troubled district behind the panels or off screen: a chip on the window's edge pointing at it (click to go there) */
+.edge-pointer {
+    position: absolute;
+    flex-direction: row;
+    align-items: center;
+    height: 26px;
+    margin-left: -70px;
+    margin-top: -13px;
+    padding: 0 10px 0 6px;
+    border-width: 1px;
+    border-radius: 13px;
+    border-color: var(--warn);
+    background-color: rgba(10, 20, 38, 0.88);
+}
+.edge-pointer:hover { background-color: var(--surface-2); }
+.edge-pointer--bad { border-color: var(--bad); }
+.edge-pointer-arrow { width: 16px; font-size: 11px; color: var(--warn); -unity-text-align: middle-center; }
+.edge-pointer--bad .edge-pointer-arrow { color: var(--bad); }
+.edge-pointer-text { margin-left: 4px; font-size: 11px; -unity-font-style: bold; color: var(--text-1); }
 
 .zone-card {
     position: absolute;

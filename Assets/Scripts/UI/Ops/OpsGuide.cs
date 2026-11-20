@@ -317,13 +317,13 @@ namespace Sector.UI
 
         // ------------------------------------------------------------------ 운영 가이드 card
 
-        VisualElement guideBody;
+        VisualElement guideBody, guideCard;
         Label guideTitle;
         bool guideFolded;
 
         void BuildGuide(VisualElement window)
         {
-            var card = Add(window, "guide");
+            var card = guideCard = Add(window, "guide");
             var head = Add(card, "guide-head");
             Badge(head, IconKind.Target, null, "badge badge--small");
             guideTitle = Text(head, "운영 가이드", "guide-title");

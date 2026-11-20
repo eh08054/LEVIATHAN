@@ -13,7 +13,8 @@ namespace Sector.EditorTools
         const int PaintedWidth = 160;
 
         // UI frames and big paintings outside Art/: smooth, uncompressed, no mipmaps (they are drawn near 1:1).
-        static readonly string[] SmoothFolders = { "Assets/Resources/UiKit/", "Assets/Resources/Macro/" };
+        // Map/ holds the per-district layers cut from the city painting (Tools/Art/district_layers.py).
+        static readonly string[] SmoothFolders = { "Assets/Resources/UiKit/", "Assets/Resources/Macro/", "Assets/Resources/Map/" };
 
         void OnPreprocessTexture()
         {
