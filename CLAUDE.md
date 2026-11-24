@@ -8,7 +8,7 @@ Unity **6000.6.0f1** project built from the Universal Render Pipeline (URP 17.7)
 
 ## Game
 
-The game is **LEVIATHAN** (GitHub repository `eh08054/LEVIATHAN`; the local folder is still `Temp`): the player is the city-running AI of that name, after Hobbes. The pilot district keeps the name SECTOR 7.
+The game is **LEVIATHAN** (GitHub repository `eh08054/LEVIATHAN`, local folder `LEVIATHAN`): the player is the city-running AI of that name, after Hobbes. The pilot district keeps the name SECTOR 7.
 
 Planning docs live in `docs/`. Keep them updated as the conversation goes:
 - `docs/Dialog.md`: summary of each planning conversation, newest entry at the bottom.
