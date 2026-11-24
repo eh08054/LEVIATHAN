@@ -8,6 +8,8 @@ Unity **6000.6.0f1** project built from the Universal Render Pipeline (URP 17.7)
 
 ## Game
 
+The game is **LEVIATHAN** (GitHub repository `eh08054/LEVIATHAN`; the local folder is still `Temp`): the player is the city-running AI of that name, after Hobbes. The pilot district keeps the name SECTOR 7.
+
 Planning docs live in `docs/`. Keep them updated as the conversation goes:
 - `docs/Dialog.md`: summary of each planning conversation, newest entry at the bottom.
 - `docs/GDD.md`: only decisions that have been agreed on. Leave undecided items as `미정`.
@@ -65,7 +67,7 @@ Requirements:
   - Feedback (`OpsFx.cs`): a ripple under every button press (`ClickRipple`), `Banner(kind, kicker, title, detail)` cards under the top bar (goal results, and log lines picked in `BannerForLog`), the settlement `Stamp`, a clock pulse each day and a top-bar sweep each week (`OnDayPassed`). All on `fxLayer` with picking ignored. `Sfx` uses a soft set (sine tones through `Soft`/`Bell`, gentle attacks, low pitches, quiet); keep new cues in that style, no square waves.
   - Delegation meter (`UiKit.DelegationGauge`, set by `OpsHud.SetGauge`, in the top bar and the 위임 현황 panel): `StreakMonths` slanted cells, one per month the index sum stayed over `NextThreshold` (`RiseStreak`); the current cell fills with the days of the month while the sum is over the threshold, and is an empty amber outline when it is under (red with `FallStreak`). It does not plot the raw index sum (that is a text row).
   - Getting started (`OpsGuide.cs`, partial of `OpsScreen`): a new game opens the 4-page briefing (`ShowBriefing`: background, goal and failure rules, the city now, how to play; all numbers read from the session and `OpsTuning`), then an optional spotlight tour (`StartTour`: shades everything except the targets found by USS class, card placed beside them, re-placed every 50 ms). The ⓘ button in the top bar replays it. The 운영 가이드 card (`.guide`, bottom-right of the city window, `RefreshGuide` on every `Refresh`) shows first-step checks derived from session state (policy active, research started, time run, event answered, first settlement) for the first two months, then the next delegation goal and stability warnings.
-  - Time: 1 day = 8 real seconds at 1×, speeds 1/2/4. The game autosaves at each monthly settlement to `persistentDataPath/sector_ops_save.txt`; delete it after test runs in the editor.
+  - Time: 1 day = 8 real seconds at 1×, speeds 1/2/4. The game autosaves at each monthly settlement to `persistentDataPath/sector_ops_save.txt` (`LocalLow/DefaultCompany/<productName>/`, so renaming the product moves it); delete it after test runs in the editor.
 - **UI:**
   - The UI is built with UI Toolkit. `SectorUI` in `SampleScene` holds a `UIDocument` (`Assets/UI/SectorPanelSettings.asset`) and `OpsScreen`, which builds every view in C#.
   - `PixelArt.Load(path)` loads and caches `Resources/Art/<path>` (null if missing). `Assets/Editor/PixelArtImporter.cs` imports `Resources/Art/` (point filtering for small pixel art, smooth for anything wider than 160 px) and big paintings outside it.

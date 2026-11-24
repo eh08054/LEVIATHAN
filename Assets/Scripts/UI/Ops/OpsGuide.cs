@@ -81,7 +81,7 @@ namespace Sector.UI
 
         void BriefBackground(VisualElement body)
         {
-            Text(body, $"{OpsSession.Start:yyyy년 M월 d일}. 시는 SECTOR 7 구역의 운영을 시범적으로 도시 운영 AI에게 맡겼다. 당신이 그 AI다.", "ops-para brief-lead");
+            Text(body, $"{OpsSession.Start:yyyy년 M월 d일}. 시는 SECTOR 7 구역의 운영을 시범적으로 도시 운영 AI에게 맡겼다. 당신이 그 AI, LEVIATHAN이다.", "ops-para brief-lead");
             Text(body, "시청은 아직 AI를 믿지 않는다. 처음 맡긴 것은 구역 하나와 치안·도시 관리·복지·건설 네 분야뿐이다. " +
                        "주민들은 변화에 지쳐 있고, 불만이 높다.", "ops-para");
             var facts = Add(body, "brief-facts");

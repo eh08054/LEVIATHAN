@@ -193,8 +193,8 @@ namespace Sector.UI
             var brand = Add(top, "brand");
             Badge(brand, IconKind.Gauge, null, "badge badge--brand");
             var brandText = Add(brand, "brand-text");
-            Text(brandText, "SECTOR 7", "brand-title");
-            Text(brandText, "시범 운영 구역", "brand-sub");
+            Text(brandText, "LEVIATHAN", "brand-title");
+            Text(brandText, "SECTOR 7 시범 운영 구역", "brand-sub");
 
             var energy = Add(top, "resource");
             Badge(energy, IconKind.Bolt, Caution, "badge badge--small");
