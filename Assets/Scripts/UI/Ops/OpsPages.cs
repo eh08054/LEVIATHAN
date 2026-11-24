@@ -85,6 +85,7 @@ namespace Sector.UI
             if (page != currentPage)
                 sfx?.Play(Cue.Click);
             currentPage = page;
+            CloseDistrict();
             bool overview = page == Page.Overview;
             overviewPage.style.display = overview ? DisplayStyle.Flex : DisplayStyle.None;
             pageView.style.display = overview ? DisplayStyle.None : DisplayStyle.Flex;

@@ -381,6 +381,8 @@ namespace Sector.UI
                 CloseZoneCard();
                 GoTo(Page.Watch);
             }, "ops-small");
+            if (session.PlanOf(zone) != null)
+                MakeButton(actions, "지구 열기", () => OpenDistrict(zone), "ops-small ops-small--accent");
             MakeButton(actions, "여기에 건설", () =>
             {
                 buildZone = zone;

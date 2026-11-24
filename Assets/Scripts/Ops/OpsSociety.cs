@@ -61,7 +61,7 @@ namespace Sector.Ops
             float sum = 0f;
             for (int g = 0; g < GroupSat.Length; g++)
                 sum += mix[g] * GroupSat[g];
-            return sum;
+            return Math.Max(0f, Math.Min(100f, sum + DistrictComfort(zone)));
         }
 
         // Population-weighted satisfaction over the zones the AI runs.
@@ -130,7 +130,7 @@ namespace Sector.Ops
             {
                 float growth = (ZoneSatisfaction(z) - 50f) * OpsTuning.PopulationGrowth;
                 if (growth > 0f)
-                    growth *= Math.Max(0f, 1f - (ZonePop[z] / Society.Zones[z].Population - 1f) / 0.5f);
+                    growth *= Math.Max(0f, 1f - (ZonePop[z] / Capacity(z) - 1f) / 0.5f);
                 ZonePop[z] *= 1f + growth;
             }
         }

@@ -73,6 +73,7 @@ namespace Sector.UI
                 session.TalkOverheard -= OnTalkOverheard;
                 session.AnomalySpotted -= OnAnomalySpotted;
                 session.CrisisWarned -= OnCrisisWarned;
+                session.Completed -= OnBuildingDone;
             }
             session = next;
             session.Logged += OnLogged;
@@ -80,6 +81,7 @@ namespace Sector.UI
             session.TalkOverheard += OnTalkOverheard;
             session.AnomalySpotted += OnAnomalySpotted;
             session.CrisisWarned += OnCrisisWarned;
+            session.Completed += OnBuildingDone;
             endShown = false;
             paused = true;
             dayClock = 0f;
@@ -106,6 +108,7 @@ namespace Sector.UI
             if (session == null)
                 return;
             sim.SetTime(dayClock / DaySeconds);
+            TickDistrictKeys();
             if (session.IsOver)
             {
                 if (!endShown && !overlayOpen)
@@ -142,6 +145,8 @@ namespace Sector.UI
                 session.AdvanceDay();
                 OnDayPassed();
                 Refresh();
+                if (DistrictOpen)
+                    RefreshDistrict();
                 if (session.Day % 7 == 0)
                     RefreshPage();
                 if (session.PendingEvent != null)

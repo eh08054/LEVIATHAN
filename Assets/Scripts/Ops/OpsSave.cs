@@ -57,6 +57,7 @@ namespace Sector.Ops
             SaveStory(Line);
             SaveTension(Line);
             SaveCrisis(Line);
+            SaveDistricts(Line);
             foreach (var entry in Log.Skip(Math.Max(0, Log.Count - 60)))
                 Line("log", entry.Replace("\n", " "));
             if (Report != null)
@@ -208,6 +209,7 @@ namespace Sector.Ops
                 s.LoadStory(Get);
                 s.LoadTension(Get);
                 s.LoadCrisis(Get);
+                s.LoadDistricts(Get, lines.Where(l => l.key == "plan").Select(l => l.value));
                 foreach (var line in lines.Where(l => l.key == "history"))
                     s.History.Add(ParseIndices(line.value));
                 foreach (var line in lines.Where(l => l.key == "log"))

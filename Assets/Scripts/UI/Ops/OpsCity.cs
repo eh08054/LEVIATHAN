@@ -207,6 +207,7 @@ namespace Sector.UI
                 m.Tag.style.top = m.Anchor.y - LeaderLength;
             }
             TickMap();
+            TickBuildChip();
             for (int i = ripples.Count - 1; i >= 0; i--)
             {
                 ripples[i].Age += dt;

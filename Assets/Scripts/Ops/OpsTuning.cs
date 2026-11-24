@@ -75,5 +75,13 @@ namespace Sector.Ops
 
         // Base observed residents besides the fixed cast, per zone.
         public const int SamplesPerZone = 3;
+
+        // District build grids (the district screen, trial): budget per person per week, people per construction
+        // crew, weekly tension per building site, share of the cost a finished building returns when pulled down.
+        public const float StartCredit = 120f;
+        public const float TaxPerPerson = 0.0008f;
+        public const float PeoplePerCrew = 2000f;
+        public const float ConstructionNoise = 0.5f;
+        public const float DemolishRefund = 0.3f;
     }
 }

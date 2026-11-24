@@ -662,5 +662,75 @@ namespace Sector.Ops.Tests
             }
             Assert.GreaterOrEqual(survived, 5);
         }
+
+        // ---------------------------------------------------------------- district build grid
+
+        [Test]
+        public void BuildingsNeedARoadBudgetAndAFreeCrew()
+        {
+            var s = new OpsSession(1);
+            Assert.IsFalse(s.CanPlace(3, "tower", 1, 1, out _), "occupied by old housing");
+            Assert.IsFalse(s.CanPlace(3, "tower", 27, 27, out _), "not touching a road");
+            Assert.IsTrue(s.CanPlace(3, "tower", 8, 8, out var reason), reason);
+            s.Credit = 10f;
+            Assert.IsFalse(s.CanPlace(3, "tower", 8, 8, out _), "too expensive");
+            s.Credit = 1000f;
+            int crews = s.Crews(3);
+            int[] lots = { 8, 9, 10, 11, 12, 13 };
+            for (int i = 0; i < crews; i++)
+                Assert.IsTrue(s.Place(3, "tower", lots[i], 8));
+            Assert.IsFalse(s.CanPlace(3, "tower", lots[crews], 8, out _), "every crew busy");
+        }
+
+        [Test]
+        public void ApartmentsRaiseCapacityOnlyWhenFinished()
+        {
+            var s = new OpsSession(1);
+            s.Credit = 1000f;
+            float before = s.Capacity(3);
+            Assert.IsTrue(s.Place(3, "apartment", 16, 8));
+            Assert.AreEqual(before, s.Capacity(3), 0.01f);
+            Assert.IsTrue(s.TensionCauses(3).Any(c => c.name.StartsWith("공사 소음")));
+            Run(s, 22);
+            Assert.Greater(s.Capacity(3), before);
+            Assert.IsFalse(s.TensionCauses(3).Any(c => c.name.StartsWith("공사 소음")));
+        }
+
+        [Test]
+        public void DemolishingHomesDisplacesPeople()
+        {
+            var s = new OpsSession(1);
+            Assert.IsTrue(s.DemolishAt(3, 1, 1));
+            Assert.Greater(s.PlanOf(3).Displaced, 0f);
+            Assert.IsTrue(s.TensionCauses(3).Any(c => c.name.StartsWith("철거로 이주한")));
+        }
+
+        [Test]
+        public void PreviewShowsTheEffectWithoutBuilding()
+        {
+            var s = new OpsSession(1);
+            int before = s.PlanOf(3).Items.Count;
+            var apartment = s.Preview(3, "apartment", 16, 8);
+            Assert.Greater(apartment.Capacity, 0f);
+            Assert.AreEqual(3, apartment.Weeks);
+            var park = s.Preview(3, "park", 11, 8);
+            Assert.Greater(park.HomesHelped, 0);
+            Assert.Greater(park.Satisfaction, 0f);
+            var shop = s.Preview(3, "shop", 16, 8);
+            Assert.Greater(shop.Credit, 0f);
+            Assert.AreEqual(before, s.PlanOf(3).Items.Count);
+        }
+
+        [Test]
+        public void ThePlanSurvivesSaveAndLoad()
+        {
+            var s = new OpsSession(1);
+            s.Credit = 500f;
+            s.Place(3, "shop", 16, 8);
+            var loaded = OpsSession.Load(s.Save());
+            Assert.AreEqual(s.Credit, loaded.Credit, 0.01f);
+            Assert.AreEqual(s.PlanOf(3).Items.Count, loaded.PlanOf(3).Items.Count);
+            Assert.AreEqual("shop", loaded.PlanOf(3).At(16, 8).Id);
+        }
     }
 }

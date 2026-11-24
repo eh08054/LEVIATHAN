@@ -4270,3 +4270,173 @@
 .watch-back { margin: 0 8px 0 0; }
 .fine-print { font-size: 10px; color: var(--text-3); margin-top: 2px; }
 .twin-name { position: absolute; font-size: 11px; color: var(--text-3); }
+
+/* ===================================================================== district screen (OpsDistrictUi.cs, trial) */
+.district-page {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    padding: 16px;
+    background-color: var(--surface-2);
+}
+.district-head { flex-direction: row; align-items: center; margin-bottom: 12px; }
+.district-titles { margin-left: 16px; }
+.district-stats { flex-direction: row; margin-left: auto; }
+.district-stat {
+    min-width: 96px;
+    margin-left: 8px;
+    padding: 6px 12px;
+    border-width: 1px;
+    border-radius: 8px;
+    border-color: var(--line);
+    background-color: rgba(0, 0, 0, 0.18);
+}
+.district-stat-label { font-size: 11px; color: var(--text-3); }
+.district-stat-value { font-size: 22px; color: var(--text-1); }
+.district-stat-extra { font-size: 11px; color: var(--text-2); }
+.district-body { flex-direction: row; flex-grow: 1; }
+.district-palette { width: 200px; flex-shrink: 0; }
+.district-tool {
+    flex-direction: row;
+    align-items: center;
+    height: 48px;
+    margin: 0 0 6px 0;
+    padding: 0 8px;
+    border-width: 1px;
+    border-radius: 8px;
+    border-color: var(--line);
+    background-color: rgba(0, 0, 0, 0.18);
+    -unity-text-align: middle-left;
+}
+.district-tool:hover { border-color: var(--accent-mid); background-color: var(--surface-hover); }
+.district-tool--on { border-color: var(--select); background-color: var(--select-soft); }
+.district-tool--off { opacity: 0.45; }
+.district-swatch { width: 18px; height: 18px; border-radius: 4px; margin-right: 10px; flex-shrink: 0; }
+.district-swatch--demolish { background-color: rgba(0, 0, 0, 0); border-width: 2px; border-color: var(--bad); }
+.district-tool-words { flex-grow: 1; }
+.district-tool-name { font-size: 13px; color: var(--text-1); -unity-text-align: middle-left; -unity-font-style: bold; }
+.district-tool-cost { font-size: 11px; color: var(--text-2); -unity-text-align: middle-left; }
+.district-stage { flex-grow: 1; margin: 0 16px; overflow: hidden; border-radius: 8px; background-color: rgba(4, 8, 18, 0.55); }
+.iso-grid { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+.district-float { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+.district-floater {
+    position: absolute;
+    translate: -50% 0;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    -unity-font-style: bold;
+    background-color: rgba(4, 8, 18, 0.8);
+    transition-property: translate, opacity;
+    transition-duration: 2s;
+}
+.district-floater--good { color: var(--good); }
+.district-floater--bad { color: var(--bad); }
+.district-floater--go { translate: -50% -40px; opacity: 0; }
+.district-say {
+    position: absolute;
+    translate: -50% 0;
+    max-width: 280px;
+    padding: 6px 10px;
+    border-width: 1px;
+    border-radius: 8px;
+    border-color: var(--line-strong);
+    background-color: rgba(18, 32, 56, 0.95);
+    font-size: 12px;
+    color: var(--text-1);
+    white-space: normal;
+}
+.district-info { width: 280px; flex-shrink: 0; }
+/* construction under way, on the overview */
+.build-chip {
+    position: absolute;
+    translate: -50% 0;
+    padding: 2px 8px;
+    border-width: 1px;
+    border-radius: 8px;
+    border-color: var(--warn);
+    background-color: rgba(60, 40, 10, 0.85);
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: var(--warn);
+}
+.ops-small--accent { color: var(--accent); border-color: var(--accent-mid); }
+/* placing a building: the hologram's tag, the cost/effect card, the confirm bar */
+.district-ghost-tag {
+    position: absolute;
+    padding: 4px 10px;
+    border-width: 1px;
+    border-radius: 8px;
+    border-color: var(--accent-mid);
+    background-color: rgba(4, 16, 30, 0.88);
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: var(--accent);
+}
+.district-ghost-tag--bad { color: var(--bad); border-color: var(--bad); }
+.district-confirm-bar {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    flex-direction: row;
+    align-items: center;
+}
+.district-confirm {
+    height: 44px;
+    min-width: 160px;
+    margin-left: 10px;
+    border-width: 1px;
+    border-radius: 8px;
+    border-color: var(--accent);
+    background-color: rgba(30, 110, 170, 0.9);
+    font-size: 16px;
+    -unity-font-style: bold;
+    color: rgb(255, 255, 255);
+}
+.district-confirm:hover { background-color: rgba(40, 140, 210, 0.95); }
+.district-confirm:disabled { opacity: 0.35; }
+.plan-card-head { flex-direction: row; align-items: center; margin-bottom: 6px; }
+.district-swatch--big { width: 40px; height: 40px; border-radius: 8px; }
+.plan-block {
+    padding: 6px 10px;
+    margin-bottom: 4px;
+    border-width: 1px;
+    border-radius: 8px;
+    border-color: var(--line);
+    background-color: rgba(0, 0, 0, 0.18);
+}
+.plan-row { flex-direction: row; justify-content: space-between; padding: 3px 0; }
+.plan-row-label { font-size: 12px; color: var(--text-2); }
+.plan-row-value { font-size: 13px; color: var(--text-1); -unity-font-style: bold; }
+.plan-warning { font-size: 12px; color: var(--bad); white-space: normal; margin-bottom: 4px; }
+/* the grid fills the district screen; the building list and the info card float over it */
+.district-body { position: relative; flex-grow: 1; flex-direction: row; }
+.district-stage { position: absolute; left: 0; top: 0; right: 0; bottom: 0; margin: 0; }
+.district-palette {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    width: 210px;
+    padding: 8px 10px;
+    border-width: 1px;
+    border-radius: 8px;
+    border-color: var(--line);
+    background-color: rgba(12, 22, 40, 0.86);
+}
+.district-info {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    width: 300px;
+    padding: 10px 12px;
+    border-width: 1px;
+    border-radius: 8px;
+    border-color: var(--line);
+    background-color: rgba(12, 22, 40, 0.86);
+}
+.district-hint { font-size: 11px; color: var(--text-3); margin-right: 12px; }
+/* the district screen's painted buildings and the layer of holograms over them */
+.iso-layer { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+.iso-sprite { position: absolute; background-size: 100% 100%; }

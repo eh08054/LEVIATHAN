@@ -160,6 +160,7 @@ namespace Sector.Ops
             int month = Date.Month;
             Day++;
             ProgressResearch();
+            DistrictDaily();
             if (Day % 7 == 0)
                 Weekly();
             if (!IsOver && Date.Month != month)
@@ -240,6 +241,7 @@ namespace Sector.Ops
             Energy = Math.Min(Energy, EnergyCap);
             Info += InfoPerWeek;
             InfoEarned += InfoPerWeek;
+            DistrictWeekly();
 
             History.Add(Indices.Copy());
             foreach (var resident in Residents.Cast)

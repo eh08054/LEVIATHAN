@@ -52,9 +52,11 @@ namespace Sector.Ops
             }
             // Success brings its own pressure: people move in, new rules take getting used to,
             // and a life with fewer real choices feels stuffy even when nobody can say why.
-            float crowd = ZonePop[zone] / def.Population - 1.05f;
+            float capacity = Capacity(zone);
+            float crowd = ZonePop[zone] / capacity - 1.05f;
             if (crowd > 0f)
-                causes.Add(($"인구 과밀 (+{(ZonePop[zone] / def.Population - 1f) * 100f:0}%)", Math.Min(2.5f, crowd * 6f)));
+                causes.Add(($"인구 과밀 (+{(ZonePop[zone] / capacity - 1f) * 100f:0}%)", Math.Min(2.5f, crowd * 6f)));
+            causes.AddRange(DistrictCauses(zone));
             int fresh = Active.Keys.Count(id => WeeksActive(id) < 4);
             if (fresh > 0)
                 causes.Add(($"새 정책 적응 ({fresh}건)", fresh * 0.4f));

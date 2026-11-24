@@ -127,6 +127,7 @@ namespace Sector.UI
             BuildResident();
             BuildSim();
 
+            BuildDistrictPage();
             overlay = Add(root, "ops-overlay");
             overlay.style.display = DisplayStyle.None;
             toast = Text(root, "", "ops-toast");
