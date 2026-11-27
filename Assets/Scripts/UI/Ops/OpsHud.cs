@@ -190,7 +190,7 @@ namespace Sector.UI
             window.pickingMode = PickingMode.Ignore;
             var caption = Add(window, "city-caption");
             caption.pickingMode = PickingMode.Ignore;
-            Text(caption, "SECTOR 7 시범 운영 구역", "city-title");
+            Text(caption, "섹터 알파 시험 도시", "city-title");
             Text(caption, "드래그로 이동 · 휠로 확대 · 더블클릭은 처음 위치 · 지구에 마우스를 올리면 정보", "city-sub");
             zoneLayer = Add(window, "zones");
             zoneLayer.pickingMode = PickingMode.Ignore;
@@ -215,7 +215,7 @@ namespace Sector.UI
             Badge(brand, IconKind.Gauge, null, "badge badge--brand");
             var brandText = Add(brand, "brand-text");
             Text(brandText, "LEVIATHAN", "brand-title");
-            Text(brandText, "SECTOR 7 시범 운영 구역", "brand-sub");
+            Text(brandText, "섹터 알파 시험 도시", "brand-sub");
             BuildViewSwitch(top);
 
             var energy = Add(top, "resource");
@@ -296,7 +296,7 @@ namespace Sector.UI
             var autonomyHead = Add(autonomy, "autonomy-head");
             Text(autonomyHead, "자율성", "autonomy-title");
             gapLabel = Text(autonomyHead, "", "autonomy-gap");
-            AutonomyBar(autonomy, IconKind.Eye, "주민이 느끼는 자율성", Felt, "felt", out feltFill, out feltValue,
+            AutonomyBar(autonomy, IconKind.Eye, "주민이 체감 자율성", Felt, "felt", out feltFill, out feltValue,
                 out feltDelta, IndexTip(Index.AutonomyFelt));
             AutonomyBar(autonomy, IconKind.Target, "실제 자율성", Real, "real", out realFill, out realValue,
                 out realDelta, IndexTip(Index.AutonomyReal));
@@ -489,7 +489,7 @@ namespace Sector.UI
             var date = session.Date;
             dateLabel.text = $"{date:yyyy.MM.dd} ({"일월화수목금토"[(int)date.DayOfWeek]})";
             var nextMonth = new DateTime(date.Year, date.Month, 1).AddMonths(1);
-            monthLabel.text = $"시범 운영 {date.Year - OpsTuning.StartYear + 1}년 차 · 결산까지 {(nextMonth - date).Days}일";
+            monthLabel.text = $"시험 운영 {date.Year - OpsTuning.StartYear + 1}년 차 · 결산까지 {(nextMonth - date).Days}일";
             RefreshTime();
 
             float net = session.PowerPerWeek - session.UpkeepPerWeek;
@@ -559,7 +559,7 @@ namespace Sector.UI
             float gap = felt - real;
             gapLabel.text = gap > 5f ? $"격차 {gap:0}" : "격차 없음";
             gapLabel.EnableInClassList("autonomy-gap--wide", gap > 30f);
-            gapLabel.tooltip = "주민이 느끼는 자율성과 실제 자율성의 차이. 주민은 스스로 고른다고 믿는다.";
+            gapLabel.tooltip = "주민이 체감 자율성과 실제 자율성의 차이. 주민은 스스로 고른다고 믿는다.";
 
             unrestLabel.text = $"민원·시위 발생률 {session.EventChance * 100f:0.#}% / 일";
             unrestLabel.EnableInClassList("unrest--high", session.EventChance > 0.1f);

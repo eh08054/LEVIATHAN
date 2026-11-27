@@ -1,6 +1,6 @@
 """District outlines, pins, roads and the AI ring for the v9 city picture (2026-11-27, free).
 
-    uv run --with opencv-python-headless --with numpy --with pillow python Tools/Art/city_v9_zones.py
+    uv run --with opencv-python-headless --with numpy --with pillow python Tools/Art/city_v9_zones.py [v9b]
 
 Tools/Art/painted/city_v9/zones.txt is projected from the Unity camera (capture space). GPT redraws the view a little
 wider, so the ground is carried onto day.png by the homography between the city plate's corners in both (CAP from
@@ -25,7 +25,10 @@ DAY = [(175, 244), (1730, 243), (1908, 1032), (6, 1032)]
 lines = [l.split() for l in open(os.path.join(D, "zones.txt"), encoding="utf-8") if l.strip() and not l.startswith("#")]
 plate = next(l for l in lines if l[0] == "plate")
 CAP = [(float(plate[1 + i * 2]) * W, float(plate[2 + i * 2]) * H) for i in range(4)]
-Hm = cv2.getPerspectiveTransform(np.float32(CAP), np.float32(DAY))
+import sys
+# v9b (Tools/Art/city_v9b.py) is drawn in the camera's own frame: no homography, preview on its stitched picture
+CAMERA = "v9b" in sys.argv
+Hm = np.eye(3) if CAMERA else cv2.getPerspectiveTransform(np.float32(CAP), np.float32(DAY))
 
 
 def carry(x, y):
@@ -74,7 +77,7 @@ print("wrote", OUT)
 
 COLORS = [(255, 214, 110), (255, 70, 220), (40, 225, 215), (255, 232, 180), (170, 110, 255), (255, 190, 50),
           (255, 130, 40), (110, 200, 255), (110, 255, 200), (60, 120, 255), (225, 230, 240)]
-im = Image.open(os.path.join(D, "day.png")).convert("RGB").resize((SW, SH))
+im = Image.open(os.path.join(ROOT, "Tools", "Art", "painted", "city_v9b", "day_8k.png") if CAMERA else os.path.join(D, "day.png")).convert("RGB").resize((SW, SH))
 d = ImageDraw.Draw(im)
 for z, polys in shapes.items():
     for p in polys:

@@ -44,7 +44,7 @@ namespace Sector.UI
             (Index.Happiness, IconKind.Smile, "행복"),
             (Index.Stability, IconKind.Shield, "사회 안정"),
             (Index.Cohesion, IconKind.Link, "사회 정합"),
-            (Index.AutonomyFelt, IconKind.Target, "자율성 (느끼는)"),
+            (Index.AutonomyFelt, IconKind.Target, "자율성 (체감)"),
             (Index.AutonomyReal, IconKind.Eye, "자율성 (실제)"),
         };
 

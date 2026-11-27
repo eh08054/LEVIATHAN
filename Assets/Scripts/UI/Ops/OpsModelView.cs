@@ -137,7 +137,7 @@ namespace Sector.UI
             var before = session.History.Count > 7 ? session.History[session.History.Count - 8] : null;
             return IndexNames.All.Select(i =>
             {
-                string n = i == Index.AutonomyFelt ? "자율성 (인지)" : i == Index.AutonomyReal ? "자율성 (실질)" : IndexNames.Name(i).Replace(" 지수", "");
+                string n = i == Index.AutonomyFelt ? "자율성 (체감)" : i == Index.AutonomyReal ? "자율성 (실질)" : IndexNames.Name(i).Replace(" 지수", "");
                 float v = session.Indices[i];
                 return (n, v, before != null ? v - before[i] : 0f);
             }).ToArray();

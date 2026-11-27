@@ -28,7 +28,7 @@ namespace Sector.Ops
         {
             new ResidentDef
             {
-                Id = "c01", Name = "김도윤", Age = 32, Job = "구청 조경 담당", Theme = "쓸모",
+                Id = "c01", Name = "김도윤", Age = 32, Job = "조경사", Theme = "쓸모",
                 Bio = "구역의 가로수와 화단을 돌본다. 일이 자동화될지 모른다는 소문에 요즘 물을 더 자주 준다.",
                 Likes = new[] { "jobmatch" }, Dislikes = new[] { "flow" },
                 Reactions = new Dictionary<string, string>
@@ -55,7 +55,7 @@ namespace Sector.Ops
             },
             new ResidentDef
             {
-                Id = "c03", Name = "박만수", Age = 68, Job = "은퇴한 지역 신문 기자", Theme = "의심",
+                Id = "c03", Name = "박만수", Age = 68, Job = "전 종군 기자", Theme = "의심",
                 Bio = "40년 동안 동네 소식을 썼다. AI가 오기 전의 구역을 기억하는 몇 안 되는 사람.",
                 Likes = new string[0], Dislikes = new[] { "press", "curation", "defaults" },
                 Reactions = new Dictionary<string, string>
@@ -108,8 +108,8 @@ namespace Sector.Ops
             },
             new ResidentDef
             {
-                Id = "c07", Name = "윤재희", Age = 45, Job = "시청 파견 감독관", Theme = "위임", Female = true,
-                Bio = "AI 시범 운영을 감독하러 시청에서 왔다. 모든 결정에 사람의 결재가 필요하다고 믿는다. 아직은.",
+                Id = "c07", Name = "윤재희", Age = 45, Job = "세계연합 감독관", Theme = "위임", Female = true,
+                Bio = "AI 시범 운영을 감독하러 세계연합에서 왔다. 모든 결정에 사람의 결재가 필요하다고 믿는다. 아직은.",
                 Likes = new[] { "press" }, Dislikes = new string[0],
                 Reactions = new Dictionary<string, string>
                 {
@@ -120,7 +120,7 @@ namespace Sector.Ops
             },
             new ResidentDef
             {
-                Id = "c08", Name = "강태오", Age = 38, Job = "지구대 경찰", Theme = "집행",
+                Id = "c08", Name = "강태오", Age = 38, Job = "경찰", Theme = "집행",
                 Bio = "이 구역에서 자랐고 이 구역을 지킨다. 시위대 절반이 아는 얼굴이다.",
                 Likes = new[] { "risk" }, Dislikes = new[] { "assembly" },
                 Reactions = new Dictionary<string, string>

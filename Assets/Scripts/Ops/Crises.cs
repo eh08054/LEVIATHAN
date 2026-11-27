@@ -35,7 +35,7 @@ namespace Sector.Ops
         {
             new CrisisDef
             {
-                Id = "heatwave", Title = "폭염과 전력 부족", Date = new DateTime(2041, 7, 20), Zone = 6,
+                Id = "heatwave", Title = "폭염과 전력 부족", Date = new DateTime(2071, 7, 20), Zone = 6,
                 Prepare = "에너지 비축(120 이상), 발전소·저장소",
                 Readiness = s => Clamp(s.Energy / 140f + s.Built.Count(b => b == "plant" || b == "storage") * 0.2f),
                 Beats = Beats(
@@ -45,7 +45,7 @@ namespace Sector.Ops
             },
             new CrisisDef
             {
-                Id = "logistics_strike", Title = "물류 대파업", Date = new DateTime(2042, 10, 12), Zone = 5,
+                Id = "logistics_strike", Title = "물류 대파업", Date = new DateTime(2072, 10, 12), Zone = 5,
                 Prepare = "노동자 만족 55 이상, 물류·산업 지구 긴장 낮추기",
                 Readiness = s => Clamp(s.GroupSat[(int)Group.Workers] / 70f * 0.6f + (1f - s.ZoneTension[5] / 100f) * 0.4f),
                 Beats = Beats(
@@ -55,7 +55,7 @@ namespace Sector.Ops
             },
             new CrisisDef
             {
-                Id = "blackout", Title = "대정전", Date = new DateTime(2043, 8, 6), Zone = -1,
+                Id = "blackout", Title = "대정전", Date = new DateTime(2073, 8, 6), Zone = -1,
                 Prepare = "발전소 2곳 이상, 저장소, 에너지 비축",
                 Readiness = s => Clamp(s.Built.Count(b => b == "plant") * 0.3f + s.Built.Count(b => b == "storage") * 0.2f + s.Energy / 300f),
                 Beats = Beats(
@@ -65,8 +65,8 @@ namespace Sector.Ops
             },
             new CrisisDef
             {
-                Id = "other_ai", Title = "다른 구역 AI 사고 소식", Date = new DateTime(2044, 6, 3), Zone = -1,
-                Prepare = "사회 안정 60 이상, 느끼는 자율성 높게 유지",
+                Id = "other_ai", Title = "다른 구역 AI 사고 소식", Date = new DateTime(2074, 6, 3), Zone = -1,
+                Prepare = "사회 안정 60 이상, 체감 자율성 높게 유지",
                 Readiness = s => Clamp(s.Indices[Index.Stability] / 80f * 0.5f + s.Indices[Index.AutonomyFelt] / 80f * 0.5f),
                 Beats = Beats(
                     (40, "뉴스", "타 시범 구역 운영 AI, 배급 오류로 사흘간 식료품 공급 중단."),
@@ -75,7 +75,7 @@ namespace Sector.Ops
             },
             new CrisisDef
             {
-                Id = "hearing", Title = "도시 전체 위임 공청회", Date = new DateTime(2045, 5, 2), Zone = 0,
+                Id = "hearing", Title = "도시 전체 위임 공청회", Date = new DateTime(2075, 5, 2), Zone = 0,
                 Prepare = "구역 긴장 낮게, 행복 60 이상",
                 Readiness = s => Clamp((1f - s.ZoneTension.Average() / 100f) * 0.5f + s.Indices[Index.Happiness] / 80f * 0.5f),
                 Beats = Beats(

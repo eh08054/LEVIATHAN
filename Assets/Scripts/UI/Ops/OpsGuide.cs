@@ -81,8 +81,8 @@ namespace Sector.UI
 
         void BriefBackground(VisualElement body)
         {
-            Text(body, $"{OpsSession.Start:yyyy년 M월 d일}. 시는 SECTOR 7 구역의 운영을 시범적으로 도시 운영 AI에게 맡겼다. 당신이 그 AI, LEVIATHAN이다.", "ops-para brief-lead");
-            Text(body, "시청은 아직 AI를 믿지 않는다. 처음 맡긴 것은 구역 하나와 치안·도시 관리·복지·건설 네 분야뿐이다. " +
+            Text(body, $"{OpsSession.Start:yyyy년 M월 d일}. 시는 섹터 알파 구역의 운영을 시범적으로 도시 운영 AI에게 맡겼다. 당신이 그 AI, LEVIATHAN이다.", "ops-para brief-lead");
+            Text(body, "세계연합은 아직 AI를 믿지 않는다. 처음 맡긴 것은 구역 하나와 치안·도시 관리·복지·건설 네 분야뿐이다. " +
                        "주민들은 변화에 지쳐 있고, 불만이 높다.", "ops-para");
             var facts = Add(body, "brief-facts");
             Fact(facts, "관리 구역", $"도시 전체 {session.Zones}개 구역 · 인구 {Population(session.ManagedPopulation)}");
@@ -95,7 +95,7 @@ namespace Sector.UI
             Text(body, "목표는 시의 신뢰를 얻어 더 많은 권한을 넘겨받는 것이다. 최고 단계에 이르면 시는 도시 전체를 맡긴다.", "ops-para brief-lead");
             var box = Add(body, "brief-box brief-box--good");
             Text(box, "권한을 얻는 법", "brief-box-title");
-            Text(box, $"· 공개 지표(행복·사회 안정·사회 정합·느끼는 자율성)의 합이 다음 단계 기준(지금 {session.NextThreshold:0})을 넘은 채로 한 달을 마치면 위임 게이지가 한 칸 찬다. 실제 자율성은 시가 보지 못한다.\n" +
+            Text(box, $"· 공개 지표(행복·사회 안정·사회 정합·체감 자율성)의 합이 다음 단계 기준(지금 {session.NextThreshold:0})을 넘은 채로 한 달을 마치면 위임 게이지가 한 칸 찬다. 실제 자율성은 시가 보지 못한다.\n" +
                       $"· {OpsTuning.StreakMonths}칸이 연속으로 차면 위임 단계가 오른다. 기준 아래로 한 달을 마치면 처음부터 다시 채운다.\n" +
                       $"· 단계가 오를 때마다 새 분야 → 정책 슬롯 → 관리 구역 순으로 열린다. {OpsTuning.MaxStage}단계가 끝이다.", "ops-para ops-para--dim");
             var bad = Add(body, "brief-box brief-box--bad");
@@ -131,7 +131,7 @@ namespace Sector.UI
                 Text(t, text, "brief-item-desc");
             }
             Item(IconKind.Policy, "정책", $"분야마다 [통제]와 [유도]가 있다. 슬롯 {session.Slots}개까지 동시에 시행한다. 켜고 끄는 것은 월간 결산 직후에만, 강도(1~3)는 주 1회 바꿀 수 있다. " +
-                                         "통제는 바로 쓸 수 있지만 주민이 알아채고(느끼는 자율성 하락) 효과가 점점 약해진다. 유도는 연구가 필요하지만 주민은 모른다.");
+                                         "통제는 바로 쓸 수 있지만 주민이 알아채고(체감 자율성 하락) 효과가 점점 약해진다. 유도는 연구가 필요하지만 주민은 모른다.");
             Item(IconKind.Research, "연구", "정보를 써서 교육·심리·기술·생명 과학을 연구한다. 유도 정책이 열리고, 에너지와 유지비가 나아진다. 한 번에 하나씩.");
             Item(IconKind.Facility, "시설", "에너지로 짓는다. 발전소는 에너지를, 센서망은 정보를, 공원·상담소는 행복과 안정을 준다.");
             Item(IconKind.Bolt, "에너지와 정보", "에너지는 매주 생산에서 유지비를 뺀 만큼 쌓인다. 바닥나면 강한 정책부터 자동으로 약해진다. 정보는 지표가 좋을수록 많이 들어온다.");
@@ -169,7 +169,7 @@ namespace Sector.UI
                        "왼쪽 '위임 현황'에서 기준까지 남은 점수와 다음에 열릴 권한을 본다." },
             new TourStep { Targets = () => Q("status"), Title = "핵심 지표",
                 Text = $"가장 위가 사회 안정이다. 0이 되면 끝난다. 행복과 사회 정합이 아래에 있다. ▲▼는 지난주 대비 변화다. " +
-                       "자율성은 두 가지다. 주민이 느끼는 자율성은 통제 정책에 떨어지고, 실제 자율성은 유도 정책에 조용히 떨어진다." },
+                       "자율성은 두 가지다. 주민이 체감 자율성은 통제 정책에 떨어지고, 실제 자율성은 유도 정책에 조용히 떨어진다." },
             new TourStep { Targets = () => Q("city-window"), Title = "도시",
                 Text = "관리 구역이 표시된다. 표지를 누르면 그 구역 현황을 본다. 사건이 나면 해당 구역에서 붉은 파동이 퍼진다. 빈 곳을 드래그해 이동하고 휠로 확대한다." },
             new TourStep { Targets = () => Q("policy"), Title = "정책 요약",

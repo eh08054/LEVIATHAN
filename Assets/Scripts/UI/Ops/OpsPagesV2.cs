@@ -29,7 +29,7 @@ namespace Sector.UI
             [Index.Happiness] = IconKind.Smile, [Index.Stability] = IconKind.Shield, [Index.Cohesion] = IconKind.Link,
             [Index.AutonomyFelt] = IconKind.Target, [Index.AutonomyReal] = IconKind.Eye,
         };
-        static string IndexShort(Index i) => i == Index.AutonomyFelt ? "자율 (느끼는)" : i == Index.AutonomyReal ? "자율 (실제)" :
+        static string IndexShort(Index i) => i == Index.AutonomyFelt ? "자율 (체감)" : i == Index.AutonomyReal ? "자율 (실제)" :
             i == Index.Happiness ? "행복" : i == Index.Stability ? "안정" : "정합";
         static readonly Color[] StanceTints = { new Color32(53, 201, 232, 255), new Color32(160, 140, 255, 255), new Color32(242, 160, 61, 255), new Color32(238, 90, 90, 255) };
 

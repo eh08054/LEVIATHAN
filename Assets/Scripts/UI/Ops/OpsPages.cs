@@ -77,7 +77,7 @@ namespace Sector.UI
                 menuBadges[page] = badge;
             }
             var foot = Add(bar, "side-foot");
-            Text(foot, "SECTOR 7 · 2041 PILOT", "side-foot-text");
+            Text(foot, "SECTOR α · 2071 PILOT", "side-foot-text");
         }
 
         void GoTo(Page page)

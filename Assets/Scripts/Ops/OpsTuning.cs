@@ -3,8 +3,8 @@ namespace Sector.Ops
     // Every number the prototype is balanced with, in one place.
     public static class OpsTuning
     {
-        // Era 1 runs 2041-01-01 .. 2045-12-31.
-        public const int StartYear = 2041;
+        // Era 1 runs 2071-01-01 .. 2075-12-31.
+        public const int StartYear = 2071;
         public const int Years = 5;
 
         // Starting city: unhappy, unsettled, loosely fitted, very free.

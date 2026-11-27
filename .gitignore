@@ -126,6 +126,9 @@ Tools/Art/painted/city_v9/crop_*.png
 Tools/Art/painted/city_v9/tile_*.png
 Tools/Art/painted/city_v9/night_?.png
 Tools/Art/painted/city_v9/*_8k.png
+Tools/Art/painted/city_v9/c4_*.png
+Tools/Art/painted/city_v9/t4_*.png
+Tools/Art/painted/city_v9/n4_*.png
 # pixel_parts: only the final block pictures (read by Tools/Art/blocks_data.py), the alpha targets and prompts are kept
 Tools/Art/painted/pixel_parts/*
 !Tools/Art/painted/pixel_parts/*.prompt.txt
@@ -151,3 +154,6 @@ Tools/Art/painted/ui_kit2/
 Assets/Resources/UiKit2/*
 !Assets/Resources/UiKit2/orb.png
 !Assets/Resources/UiKit2/orb.png.meta
+
+# city_v9b: shape/look/day/night tiles (the stitched pictures are installed in Assets/Resources/Macro)
+Tools/Art/painted/city_v9b/*.png

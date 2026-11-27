@@ -46,35 +46,11 @@ namespace Sector.UI
 
         void DrawCityLife(MeshGenerationContext ctx)
         {
-            if (session == null || roads == null || modelMode) return;
+            if (session == null || roads == null || modelMode || !PaintingDistricts) return;
             var p = ctx.painter2D;
             float t = cityTime;
-            float night = cityNight != null ? cityNight.resolvedStyle.opacity : 0f;
-            float podSize = Mathf.Lerp(3.2f, 4.2f, Mathf.InverseLerp(1f, 3.4f, zoom));
 
-            // pods: each road carries a few lights each way, spaced by a golden-ratio phase so they never line up
-            for (int i = 0; i < roads.Count; i++)
-            {
-                var (wide, a, b) = roads[i];
-                int n = wide ? 7 : 3;
-                for (int k = 0; k < n * 2; k++)
-                {
-                    bool back = k % 2 == 1;
-                    float speed = (wide ? 0.035f : 0.022f) * (1f + (k % 3) * 0.15f);
-                    float u = Mathf.Repeat((k / 2) / (float)n + i * 0.618f + t * speed * (back ? -1 : 1), 1f);
-                    var at = Vector2.Lerp(a, b, u);
-                    var side = (b - a).normalized; var norm = new Vector2(-side.y, side.x) * (back ? 0.0016f : -0.0016f);
-                    var s = PinAt(at + norm);
-                    var col = back ? new Color(1f, 0.78f, 0.5f) : new Color(0.6f, 0.93f, 1f);
-                    col.a = Mathf.Lerp(0.9f, 1f, night);
-                    p.fillColor = col;
-                    p.BeginPath(); p.Arc(s, podSize * 0.7f, 0, 360); p.Fill();
-                    {
-                        p.fillColor = new Color(col.r, col.g, col.b, 0.12f + 0.15f * night);
-                        p.BeginPath(); p.Arc(s, podSize * 1.9f, 0, 360); p.Fill();
-                    }
-                }
-            }
+            // (pod lights along the roads were taken out on request, 2026-11-27)
 
             // (the AI centre's ring is painted; a pulse over it would need its height, which the ground homography
             // in Tools/Art/city_v9_zones.py does not carry, so it is left to the picture)

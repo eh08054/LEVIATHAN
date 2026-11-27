@@ -9,7 +9,7 @@ using Random = UnityEngine.Random;
 
 namespace Sector.UI
 {
-    // The operations game (era 1, 2041 pilot district). A top bar and a left menu stay on screen; each menu item is a
+    // The operations game (era 1, 2071 pilot district). A top bar and a left menu stay on screen; each menu item is a
     // full page (OpsPages.cs), the city overview being the first (OpsHud.cs). Time runs in real time with pause and
     // speed and keeps running across pages; events (modal) and the monthly settlement stop it.
     [RequireComponent(typeof(UIDocument))]
@@ -366,7 +366,7 @@ namespace Sector.UI
                     break;
                 case Outcome.Revoked:
                     title = "권한 회수";
-                    text = "시청이 운영 권한을 회수했다. SECTOR 7은 다시 사람의 손으로 돌아갔다.";
+                    text = "세계연합이 운영 권한을 회수했다. 섹터 알파은 다시 사람의 손으로 돌아갔다.";
                     sfx.Play(Cue.Fail);
                     break;
                 case Outcome.Cleared:
@@ -390,7 +390,7 @@ namespace Sector.UI
                 Text(line, IndexNames.Name(index), "ops-table-name");
                 Text(line, $"{session.Indices[index]:0}", "ops-table-value");
             }
-            Text(body, $"주민이 느끼는 자율성 {session.Indices[Index.AutonomyFelt]:0} · 실제 자율성 {session.Indices[Index.AutonomyReal]:0}", "ops-badge");
+            Text(body, $"주민이 체감 자율성 {session.Indices[Index.AutonomyFelt]:0} · 실제 자율성 {session.Indices[Index.AutonomyReal]:0}", "ops-badge");
             var row = Add(body, "ops-row");
             MakeButton(row, "새 게임", Reset, "ops-primary");
         }
@@ -408,7 +408,7 @@ namespace Sector.UI
             bool wasPaused = paused;
             paused = true;
             var body = OpenOverlay("초기화", "ops-modal--narrow", onClose: () => paused = wasPaused);
-            Text(body, "지금까지의 운영을 지우고 2041년 1월 1일부터 새로 시작합니다. 되돌릴 수 없습니다.", "ops-para");
+            Text(body, "지금까지의 운영을 지우고 2071년 1월 1일부터 새로 시작합니다. 되돌릴 수 없습니다.", "ops-para");
             var row = Add(body, "ops-row");
             MakeButton(row, "취소", () =>
             {

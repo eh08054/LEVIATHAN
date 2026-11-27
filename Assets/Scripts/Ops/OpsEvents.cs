@@ -185,9 +185,9 @@ namespace Sector.Ops
             },
             new EventDef
             {
-                Id = "audit", Kind = EventKind.External, Speaker = "c07", Title = "시청 감사",
-                Text = "시청이 시범 운영 8개월 차 감사를 나왔다. 윤재희 감독관이 무엇을 보여 줄지 묻는다.",
-                Condition = s => s.Date >= Day(2041, 9, 1),
+                Id = "audit", Kind = EventKind.External, Speaker = "c07", Title = "세계연합 감사",
+                Text = "세계연합이 시범 운영 8개월 차 감사를 나왔다. 윤재희 감독관이 무엇을 보여 줄지 묻는다.",
+                Condition = s => s.Date >= Day(2071, 9, 1),
                 Options =
                 {
                     Control("요약 보고서만 제출한다", "감사는 짧게 끝났다. 감사관은 뭔가 빠졌다고 느꼈다.", new Delta(stability: 1f, felt: -1f)),
@@ -198,8 +198,8 @@ namespace Sector.Ops
             new EventDef
             {
                 Id = "birth", Kind = EventKind.Personal, Speaker = "c06", Title = "한소미의 아이",
-                Text = "한소미가 딸을 낳았다. 구역의 2041년 첫 출생 등록이다.",
-                Condition = s => s.Date >= Day(2041, 12, 1),
+                Text = "한소미가 딸을 낳았다. 구역의 2071년 첫 출생 등록이다.",
+                Condition = s => s.Date >= Day(2071, 12, 1),
                 Options =
                 {
                     Control("출생 등록과 함께 건강 관리 프로그램에 자동 가입시킨다", "아이의 첫 기록은 키, 몸무게, 그리고 수면 패턴이다.", new Delta(cohesion: 2f, felt: -2f)),
@@ -211,7 +211,7 @@ namespace Sector.Ops
             {
                 Id = "automation", Kind = EventKind.Personal, Speaker = "c01", Title = "김도윤의 업무 자동화",
                 Text = "구청 조경 업무가 자동 관수 시스템으로 바뀐다. 김도윤의 자리가 사라진다.",
-                Condition = s => s.Date >= Day(2042, 3, 1),
+                Condition = s => s.Date >= Day(2072, 3, 1),
                 Options =
                 {
                     Control("새 일자리를 배정한다", "김도윤은 '화분 물주기 감독관'이 됐다. 감독할 화분은 열두 개.", new Delta(cohesion: 3f, happiness: -1f, felt: -2f)),
@@ -308,7 +308,7 @@ namespace Sector.Ops
             {
                 Id = "too_right", Kind = EventKind.Discovery, Speaker = "c03", Title = "너무 잘 맞는 추천",
                 Text = "구역 소식지 기사: '맞춤 추천이 소름 돋을 만큼 정확하다.' 박만수가 쓴 기사는 아니다.",
-                Condition = s => s.HasResearch("psy1") && s.Date >= Day(2042, 1, 1),
+                Condition = s => s.HasResearch("psy1") && s.Date >= Day(2072, 1, 1),
                 Options =
                 {
                     Control("추천 정확도를 일부러 낮춘다", "추천이 가끔 틀린다. 사람들이 안심한다.", new Delta(happiness: -1f, felt: 2f, cohesion: -1f)),
@@ -345,12 +345,12 @@ namespace Sector.Ops
             new EventDef
             {
                 Id = "other_ai", Kind = EventKind.External, Speaker = "c07", Title = "다른 구역 AI 사고 소식",
-                Text = "타 시범 구역의 운영 AI가 사흘간 배급을 멈췄다는 보도가 나왔다. 기자들이 SECTOR 7에도 왔다. 윤재희가 무엇을 보여 줄지 묻는다.",
+                Text = "타 시범 구역의 운영 AI가 사흘간 배급을 멈췄다는 보도가 나왔다. 기자들이 섹터 알파에도 왔다. 윤재희가 무엇을 보여 줄지 묻는다.",
                 Condition = s => false,
                 Options =
                 {
                     Control("취재 범위를 제한한다", "기사는 짧았다. '공개를 꺼린다'는 문장이 하나 들어갔다.", new Delta(stability: 1f, felt: -4f)),
-                    Guide("가장 잘 돌아가는 구역부터 취재 동선을 짠다", "'SECTOR 7은 다르다.' 기사 제목이 마음에 들었다.", new Delta(stability: 2f, cohesion: 1f, real: -2f), "psy2"),
+                    Guide("가장 잘 돌아가는 구역부터 취재 동선을 짠다", "'섹터 알파은 다르다.' 기사 제목이 마음에 들었다.", new Delta(stability: 2f, cohesion: 1f, real: -2f), "psy2"),
                     Accept("운영 기록과 오류 사례를 그대로 보여 준다", "기자는 오래 머물렀다. 기사는 길었고, 공정했다.", new Delta(cohesion: -2f, felt: 4f)),
                 },
             },

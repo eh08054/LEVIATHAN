@@ -163,7 +163,7 @@ namespace Sector.Ops
             Node("tech_grid", Tech, 2, 1, "스마트 그리드", "전력",
                 "필요한 곳에 필요한 만큼만 보낸다. 주당 발전 +4.", "tech1").With(power: 4f),
             Node("tech_open", Tech, 3, -1, "공개 대시보드", "투명성",
-                "운영 지표 일부를 주민에게 공개한다. 주민은 지켜보고 있다고 느낀다. 느끼는 자율성과 안정이 오른다.", "tech2", "tech_grid")
+                "운영 지표 일부를 주민에게 공개한다. 주민은 지켜보고 있다고 느낀다. 체감 자율성과 안정이 오른다.", "tech2", "tech_grid")
                 .Doctrine("tech_shadow", Lean.Happiness).With(new Delta(stability: 0.2f, felt: 0.3f)),
             Node("tech_shadow", Tech, 3, 1, "그림자 연산", "비밀",
                 "보고서에 없는 계산을 따로 돌린다. 주당 정보 +4, 실제 자율성이 떨어진다.", "tech2", "tech_grid")

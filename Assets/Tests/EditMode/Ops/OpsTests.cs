@@ -541,7 +541,7 @@ namespace Sector.Ops.Tests
             }
             var s = New();
             s.ChooseDirective(-1);
-            s.Day = (int)(new System.DateTime(2041, 6, 1) - OpsSession.Start).TotalDays;
+            s.Day = (int)(new System.DateTime(2071, 6, 1) - OpsSession.Start).TotalDays;
             for (int i = 0; i < 60 && s.PendingCrisis == null; i++)
             {
                 if (s.PendingEvent != null)
@@ -585,7 +585,7 @@ namespace Sector.Ops.Tests
             Assert.IsTrue(s.ChooseDirective(1));
             Assert.IsNull(s.DirectiveOffer);
             Assert.NotNull(s.Directive);
-            Assert.AreEqual(new System.DateTime(2041, 4, 1), OpsSession.Start.AddDays(s.Directive.DueDay));
+            Assert.AreEqual(new System.DateTime(2071, 4, 1), OpsSession.Start.AddDays(s.Directive.DueDay));
         }
 
         [Test]

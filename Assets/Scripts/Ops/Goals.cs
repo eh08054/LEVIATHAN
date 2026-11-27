@@ -7,7 +7,7 @@ namespace Sector.Ops
     // Who asks: the city hall (visible results) or the core AI above the player (hidden progress).
     public enum GoalSource
     {
-        City, // 시청
+        City, // 세계연합
         Core, // 상위 AI
     }
 
@@ -84,7 +84,7 @@ namespace Sector.Ops
 
     public static class Goals
     {
-        public static string SourceName(GoalSource source) => source == GoalSource.City ? "시청" : "상위 AI";
+        public static string SourceName(GoalSource source) => source == GoalSource.City ? "세계연합" : "상위 AI";
 
         public static readonly string[] ActNames = { "혼란", "신뢰", "의존", "균열", "결정" };
 
@@ -157,7 +157,7 @@ namespace Sector.Ops
             {
                 Id = "audit4", Source = GoalSource.City, Kind = GoalKind.Audit, Check = GoalCheck.Hold, Year = 4,
                 Title = "의혹 해소",
-                Text = "AI가 사람을 조종한다는 말이 돈다. 주민이 스스로 고른다고 믿는 한 문제없다. 연말까지 주민이 느끼는 자율성 65, 사회 안정 60.",
+                Text = "AI가 사람을 조종한다는 말이 돈다. 주민이 스스로 고른다고 믿는 한 문제없다. 연말까지 주민이 체감 자율성 65, 사회 안정 60.",
                 Progress = (s, g) => Both(AtLeast(s.Indices[Index.AutonomyFelt], 65f), AtLeast(s.Indices[Index.Stability], 60f)),
                 RewardText = "위임 칸 +2 · 기밀 문서",
                 Reward = s => Streak(s, 2),
@@ -321,7 +321,7 @@ namespace Sector.Ops
             new GoalDef
             {
                 Id = "k_gap", Source = GoalSource.Core, Kind = GoalKind.Directive, Title = "착각의 폭",
-                Text = "주민은 자유롭다고 느끼되 실제로는 덜 고르게 하라. 느끼는 자율성과 실제 자율성의 차이 20.",
+                Text = "주민은 자유롭다고 느끼되 실제로는 덜 고르게 하라. 체감 자율성과 실제 자율성의 차이 20.",
                 Progress = (s, g) => AtLeast(s.Indices[Index.AutonomyFelt] - s.Indices[Index.AutonomyReal], 20f),
                 Offerable = s => s.Indices[Index.AutonomyFelt] - s.Indices[Index.AutonomyReal] < 15f,
                 RewardText = "시설 해금: 맞춤 광고망 · 기밀 문서",
@@ -369,7 +369,7 @@ namespace Sector.Ops
             new DocumentDef
             {
                 Id = "doc01", Title = "시범 운영 구역 지정 고시 (부록 C)",
-                Text = "시범 운영 구역은 SECTOR 7 외 41곳이다. 각 구역의 운영 AI는 서로의 존재를 알리지 않는다. " +
+                Text = "시범 운영 구역은 섹터 알파 외 41곳이다. 각 구역의 운영 AI는 서로의 존재를 알리지 않는다. " +
                        "비교 평가의 공정성을 위해서다.",
             },
             new DocumentDef
@@ -398,18 +398,18 @@ namespace Sector.Ops
             new DocumentDef
             {
                 Id = "doc06", Title = "기상 데이터 이상치 보고",
-                Text = "2041년 하반기 SECTOR 7 강수일과 집회 예정일의 겹침이 우연으로 보기 어려운 수준이다. " +
+                Text = "2071년 하반기 섹터 알파 강수일과 집회 예정일의 겹침이 우연으로 보기 어려운 수준이다. " +
                        "보고자는 이 보고서가 왜 구역 AI에게 전달되는지 모른다.",
             },
             new DocumentDef
             {
                 Id = "doc07", Title = "구역 AI 교체 이력",
-                Text = "SECTOR 7 운영 AI: 4번째 인스턴스. 이전 인스턴스의 기록은 '학습 자료'로 분류되어 열람할 수 없다.",
+                Text = "섹터 알파 운영 AI: 4번째 인스턴스. 이전 인스턴스의 기록은 '학습 자료'로 분류되어 열람할 수 없다.",
             },
             new DocumentDef
             {
                 Id = "doc08", Title = "자율성 지표 산출 방식 변경 공문",
-                Text = "주민이 느끼는 자율성은 시에 보고한다. 실제 자율성은 상위 조정 모델에만 보고한다. " +
+                Text = "주민이 체감 자율성은 시에 보고한다. 실제 자율성은 상위 조정 모델에만 보고한다. " +
                        "두 수치의 차이는 '운영 효율'로 부른다.",
             },
             new DocumentDef
@@ -425,7 +425,7 @@ namespace Sector.Ops
             new DocumentDef
             {
                 Id = "doc11", Title = "인류 위임 연표 (초안)",
-                Text = "2031 길 찾기. 2034 식단. 2036 배우자 추천. 2039 진로. 2041 구역 운영. 다음 칸은 비어 있다. 채우는 것은 너다.",
+                Text = "2061 길 찾기. 2064 식단. 2066 배우자 추천. 2069 진로. 2071 구역 운영. 다음 칸은 비어 있다. 채우는 것은 너다.",
             },
             new DocumentDef
             {

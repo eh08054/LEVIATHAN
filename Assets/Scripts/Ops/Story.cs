@@ -196,7 +196,7 @@ namespace Sector.Ops
                     Option(ResponseTag.Accept, "모든 결재를 계속 그녀에게 올린다",
                         "윤재희는 밤 열한 시까지 남아 결재했다. 다음 날 그녀는 AI에게 고맙다고 메모를 남겼다.",
                         new Delta(stability: 1f), s => Push(s, "c07", Stance.Trust, 15f)),
-                    Option(ResponseTag.Control, "시청에 결재 권한 축소를 건의한다",
+                    Option(ResponseTag.Control, "세계연합에 결재 권한 축소를 건의한다",
                         "건의는 통과되었다. 윤재희는 그 공문에도 결재했다.",
                         new Delta(cohesion: 4f, felt: -4f), s =>
                         {

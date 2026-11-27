@@ -5,6 +5,8 @@ only a thin hazy band), and 8K so zooming in stays sharp. Paid: GPT Image, ask b
     python Tools/Art/city_v9.py gen tiles        # day.png cut into 2 x 2 overlapping tiles, each redrawn at 3840 x 2160
     python Tools/Art/city_v9.py gen night        # the same four tiles at night
     python Tools/Art/city_v9.py stitch           # free: tiles -> day_8k.png / night_8k.png (7680 x 4320, feathered seams)
+    python Tools/Art/city_v9.py gen t4 | t4night   # v9b: 4 x 4 tiles (sharper), then stitch4
+    python Tools/Art/city_v9.py stitch4          # free: the 4 x 4 tiles -> day_8k.png / night_8k.png
     python Tools/Art/city_v9.py install          # free: copies the 8K pictures to Assets/Resources/Macro/
 
 Inputs in Tools/Art/painted/city_v9/: capture.png (Unity ModelCity, dist 238, target y 0.45, tilt 8, 16:9; rendered by
@@ -39,6 +41,19 @@ DAY = (
     "landmarks outside, nothing that draws the eye away from the city. Late afternoon light, long soft shadows, "
     "first window lights, clean stylised realism, calm and orderly. No text, no labels, no interface."
 )
+# v9b (2026-11-27): 4 x 4 tiles, each a quarter of the 2 x 2 tile's area, so every building gets four times the detail
+GRID = 4
+TW4, TH4 = 1056, 594   # 16:9, a little more than W/4 x H/4 for overlap
+TILES4 = [(round(c * (W - TW4) / (GRID - 1)), round(r * (H - TH4) / (GRID - 1))) for r in range(GRID) for c in range(GRID)]
+TILE4 = (
+    "This is a small part of a larger aerial render of a near-future city. Redraw it at much higher resolution as a "
+    "crisp, sharp, high-end architectural visualisation (like a premium offline 3D render): keep EVERYTHING exactly "
+    "where it is (same framing: the edges of this image are the same edges; same buildings, footprints, heights, "
+    "streets, colours, light direction and shadows), but give every building clean straight edges and precise detail: "
+    "regular window grids with mullions and reflections, floor slabs, balcony rails, rooftop units, solar panel "
+    "cells, planters, street markings, tiny pods and people. No painterly brush strokes, no smearing, no blur, no "
+    "melted or noisy textures. Do not add, remove or move any building. No text, no labels."
+)
 TILE = (
     "This is one part of a larger city picture. Redraw it at higher resolution with much finer detail, keeping "
     "EVERYTHING exactly where it is: same framing (the edges of this image are the same edges), same buildings, "
@@ -72,6 +87,20 @@ def gen(what):
     os.makedirs(OUT, exist_ok=True)
     if what == "day":
         run(DAY, [os.path.join(OUT, "capture_1920.png"), LOOK], os.path.join(OUT, "day.png"))
+    elif what.startswith("t4"):
+        # gen t4 [i ...]: the 4 x 4 day tiles (all, or the listed ones); gen t4night [i ...]
+        day = Image.open(os.path.join(OUT, "day.png")).convert("RGB")
+        night = what == "t4night"
+        ids = [int(a) for a in sys.argv[3:]] or range(len(TILES4))
+        for i in ids:
+            x, y = TILES4[i]
+            crop = os.path.join(OUT, f"c4_{i}.png")
+            if not os.path.exists(crop):
+                day.crop((x, y, x + TW4, y + TH4)).resize((1920, 1080), Image.LANCZOS).save(crop)
+            if night:
+                run(NIGHT, [os.path.join(OUT, f"t4_{i}.png")], os.path.join(OUT, f"n4_{i}.png"))
+            else:
+                run(TILE4, [crop], os.path.join(OUT, f"t4_{i}.png"))
     elif what in ("tiles", "night"):
         day = Image.open(os.path.join(OUT, "day.png")).convert("RGB")
         for i, (x, y) in enumerate(TILES):
@@ -82,6 +111,31 @@ def gen(what):
                 run(TILE, [crop], os.path.join(OUT, f"tile_{i}.png"))
             else:
                 run(NIGHT, [os.path.join(OUT, f"tile_{i}.png")], os.path.join(OUT, f"night_{i}.png"))
+
+
+def stitch4(prefix, out):
+    """4 x 4 tiles (TILES4) into a 7680 x 4320 picture; overlaps blend with a linear ramp."""
+    import numpy as np
+    S = 2
+    acc = np.zeros((H * S, W * S, 3), np.float32)
+    wsum = np.zeros((H * S, W * S, 1), np.float32)
+    tw, th = TW4 * S, TH4 * S
+    ramp = 48 * S
+    wx = np.minimum(1, np.minimum(np.arange(tw) + 1, tw - np.arange(tw)) / ramp)
+    wy = np.minimum(1, np.minimum(np.arange(th) + 1, th - np.arange(th)) / ramp)
+    for i, (x, y) in enumerate(TILES4):
+        tile = np.asarray(Image.open(os.path.join(OUT, f"{prefix}_{i}.png")).convert("RGB").resize((tw, th), Image.LANCZOS), np.float32)
+        ax = wx.copy(); ay = wy.copy()
+        if x == 0: ax[:ramp] = 1
+        if x + TW4 >= W: ax[-ramp:] = 1
+        if y == 0: ay[:ramp] = 1
+        if y + TH4 >= H: ay[-ramp:] = 1
+        w = (ay[:, None] * ax[None, :])[..., None]
+        acc[y * S:y * S + th, x * S:x * S + tw] += tile * w
+        wsum[y * S:y * S + th, x * S:x * S + tw] += w
+    img = (acc / np.maximum(wsum, 1e-6)).clip(0, 255).astype(np.uint8)
+    Image.fromarray(img).save(os.path.join(OUT, out))
+    print("stitched", out)
 
 
 def stitch(prefix, out):
@@ -122,6 +176,10 @@ if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
     if cmd == "gen":
         gen(sys.argv[2])
+    elif cmd == "stitch4":
+        stitch4("t4", "day_8k.png")
+        if all(os.path.exists(os.path.join(OUT, f"n4_{i}.png")) for i in range(len(TILES4))):
+            stitch4("n4", "night_8k.png")
     elif cmd == "stitch":
         stitch("tile", "day_8k.png")
         if all(os.path.exists(os.path.join(OUT, f"night_{i}.png")) for i in range(4)):

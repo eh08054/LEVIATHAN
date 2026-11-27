@@ -57,7 +57,7 @@ namespace Sector.Ops
         public List<GoalResult> Goals = new List<GoalResult>();
     }
 
-    // One playthrough of era 1 (2041 pilot district): indices, resources, policy, research, facilities, delegation.
+    // One playthrough of era 1 (2071 pilot district): indices, resources, policy, research, facilities, delegation.
     public sealed partial class OpsSession
     {
         public readonly Indices Indices = new Indices();
@@ -387,7 +387,7 @@ namespace Sector.Ops
             {
                 Stage = 1;
                 Outcome = Outcome.Revoked;
-                Write("시청이 운영 권한을 회수했다.");
+                Write("세계연합이 운영 권한을 회수했다.");
                 return "권한 회수";
             }
             if (Unlocks.Count > 0)

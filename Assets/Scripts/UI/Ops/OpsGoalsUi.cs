@@ -109,7 +109,7 @@ namespace Sector.UI
             RefreshTime();
             var body = OpenOverlay($"{Quarter(session.Date)} · 지시 선택", "ops-modal--wide directive-modal", closable: false);
             var intro = Add(body, "directive-intro");
-            Text(intro, "이번 분기에 받을 지시를 하나 고른다. 시청 지시는 위임에, 상위 AI 지시는 숨은 진척과 기밀 문서에 보탬이 된다. " +
+            Text(intro, "이번 분기에 받을 지시를 하나 고른다. 세계연합 지시는 위임에, 상위 AI 지시는 숨은 진척과 기밀 문서에 보탬이 된다. " +
                         "어느 쪽을 따랐는지는 기록된다.", "ops-para ops-para--dim");
             MakeButton(intro, "이번 분기는 받지 않는다", () =>
             {
@@ -247,7 +247,7 @@ namespace Sector.UI
             foreach (var goal in current)
                 GoalCard(list, goal);
 
-            Text(list, $"지난 목표 · 시청 {session.CityDone}건 · 상위 AI {session.CoreDone}건 달성", "section-title");
+            Text(list, $"지난 목표 · 세계연합 {session.CityDone}건 · 상위 AI {session.CoreDone}건 달성", "section-title");
             if (session.GoalResults.Count == 0)
                 Text(list, "아직 끝난 목표가 없다.", "ops-note");
             foreach (var result in Enumerable.Reverse(session.GoalResults))

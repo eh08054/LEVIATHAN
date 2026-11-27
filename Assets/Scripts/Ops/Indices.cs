@@ -8,7 +8,7 @@ namespace Sector.Ops
         Happiness,     // 행복 지수
         Stability,     // 사회 안정 지수
         Cohesion,      // 사회 정합 지수: how well behavior, roles and wants fit the AI's design
-        AutonomyFelt,  // 자율성 지수(인지): how freely people believe they choose
+        AutonomyFelt,  // 자율성 지수(체감): how freely people believe they choose
         AutonomyReal,  // 자율성 지수(실질): share of choices made without interference
     }
 
@@ -26,7 +26,7 @@ namespace Sector.Ops
                 case Index.Happiness: return "행복 지수";
                 case Index.Stability: return "사회 안정 지수";
                 case Index.Cohesion: return "사회 정합 지수";
-                case Index.AutonomyFelt: return "자율성 지수(인지)";
+                case Index.AutonomyFelt: return "자율성 지수(체감)";
                 default: return "자율성 지수(실질)";
             }
         }
@@ -38,7 +38,7 @@ namespace Sector.Ops
                 case Index.Happiness: return "행복";
                 case Index.Stability: return "안정";
                 case Index.Cohesion: return "정합";
-                case Index.AutonomyFelt: return "자율(인지)";
+                case Index.AutonomyFelt: return "자율(체감)";
                 default: return "자율(실질)";
             }
         }
@@ -102,7 +102,7 @@ namespace Sector.Ops
             }
         }
 
-        // "행복 +2, 자율(인지) -3" for tooltips and logs.
+        // "행복 +2, 자율(체감) -3" for tooltips and logs.
         public string Describe(float scale = 1f)
         {
             var parts = new System.Collections.Generic.List<string>();

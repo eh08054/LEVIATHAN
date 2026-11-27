@@ -40,7 +40,7 @@ namespace Sector.ModelCity
         readonly List<Label> skyLabels = new List<Label>();
         string focus;
 
-        static readonly (string name, float v, float d)[] Idx = { ("행복", 62, 1.2f), ("사회 안정", 71, -0.4f), ("사회 정합", 58, 0.8f), ("자율성 (인지)", 66, 0.3f), ("자율성 (실질)", 41, -1.1f) };
+        static readonly (string name, float v, float d)[] Idx = { ("행복", 62, 1.2f), ("사회 안정", 71, -0.4f), ("사회 정합", 58, 0.8f), ("자율성 (체감)", 66, 0.3f), ("자율성 (실질)", 41, -1.1f) };
         static readonly (string k, Color c, string a, string b)[] Alerts =
         {
             ("U", new Color32(238, 90, 90, 255), "문화·여가 · 모임", "광장에 사람이 모이고 있다 · 긴장 82"),
