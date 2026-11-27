@@ -1,0 +1,143 @@
+<!doctype html>
+<!-- UI direction mock-ups (2026-11-27, free): the main screen as a GAME, not a web page. Fewer words, bigger type,
+     icons and gauges instead of tables, details only on hover or in drawers. ?v=b (game HUD) | ?v=a (console bezel).
+     Backdrop: Tools/Art/painted/model/model_target.png. Shapes are CSS for now; frames, icons and ornaments would be
+     GPT Image sheets later. -->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>LEVIATHAN UI 시안</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #050b16; font-family: "Pretendard", "Malgun Gothic", sans-serif; color: #eaf3ff; }
+  .scene { position: absolute; inset: 0; background: url(model_target.png) center 70% / cover; }
+  .num { font-family: "Rajdhani", "Bahnschrift", "Segoe UI", sans-serif; font-weight: 700; }
+  svg { display: block; }
+  .ico { width: 26px; height: 26px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ---------------- B: game HUD ---------------- */
+  .b .shade-top { position: absolute; left: 0; right: 0; top: 0; height: 180px; background: linear-gradient(rgba(4,10,22,.85), rgba(4,10,22,0)); }
+  .b .shade-bot { position: absolute; left: 0; right: 0; bottom: 0; height: 220px; background: linear-gradient(rgba(4,10,22,0), rgba(4,10,22,.9)); }
+  .emblem { position: absolute; left: 22px; top: 18px; width: 96px; height: 96px; }
+  .emblem .core { position: absolute; inset: 14px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #8ff3ff, #1d7fa8 45%, #0a2440 75%); box-shadow: 0 0 24px rgba(80,220,255,.7); }
+  .emblem .eye { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px; border-radius: 50%; background: #e9fdff; box-shadow: 0 0 16px #fff; }
+  .stage { position: absolute; left: 126px; top: 30px; }
+  .stage .t { font-size: 13px; color: #8fb4d8; letter-spacing: 2px; }
+  .stage .v { font-size: 26px; font-weight: 800; }
+  .stage .bar { display: flex; gap: 4px; margin-top: 4px; } .stage .bar i { width: 26px; height: 7px; border-radius: 4px; background: rgba(140,180,220,.25); } .stage .bar i.f { background: #35c9e8; box-shadow: 0 0 8px #35c9e8; }
+  .clock { position: absolute; left: 50%; top: 16px; transform: translateX(-50%); text-align: center; }
+  .clock .d { font-size: 30px; letter-spacing: 1px; text-shadow: 0 2px 8px rgba(0,0,0,.6); }
+  .clock .speed { display: inline-flex; gap: 6px; margin-top: 4px; }
+  .rbtn { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: rgba(10,24,44,.75); border: 2px solid rgba(120,200,240,.35); color: #bfe6ff; font-weight: 700; font-size: 14px; }
+  .rbtn.on { background: #2f86ff; border-color: #9cc7ff; color: #fff; box-shadow: 0 0 12px rgba(80,150,255,.8); }
+  .broadcast { margin-top: 8px; font-size: 15px; color: #9feeff; letter-spacing: 1px; }
+  .res { position: absolute; right: 24px; top: 22px; display: flex; gap: 14px; }
+  .chip { display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; border-radius: 26px; background: rgba(8,20,40,.7); border: 1px solid rgba(120,200,240,.3); }
+  .chip .ic { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; }
+  .chip .n { font-size: 24px; }
+  .crisis { position: absolute; left: 50%; top: 142px; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 8px 18px 8px 8px; border-radius: 28px; background: linear-gradient(90deg, rgba(120,60,10,.85), rgba(60,30,10,.6)); border: 1px solid #f2a03d; box-shadow: 0 0 20px rgba(242,160,61,.35); }
+  .crisis .dd { width: 54px; height: 54px; border-radius: 50%; background: #f2a03d; color: #2a1400; display: grid; place-items: center; font-size: 20px; }
+  .crisis .tt { font-size: 18px; font-weight: 700; } .crisis .ss { font-size: 13px; color: #ffd9a8; }
+  .gauges { position: absolute; left: 26px; top: 150px; display: flex; flex-direction: column; gap: 16px; }
+  .gauge { position: relative; width: 78px; height: 78px; }
+  .gauge .in { position: absolute; inset: 10px; border-radius: 50%; background: rgba(6,16,32,.8); display: grid; place-items: center; }
+  .gauge .val { position: absolute; left: 88px; top: 18px; font-size: 30px; text-shadow: 0 2px 6px rgba(0,0,0,.7); }
+  .gauge .lab { position: absolute; left: 88px; top: 52px; font-size: 13px; color: #9fc0e0; white-space: nowrap; }
+  .feed { position: absolute; right: 22px; top: 110px; width: 330px; display: flex; flex-direction: column; gap: 12px; }
+  .card { display: flex; gap: 12px; align-items: center; padding: 10px 14px 10px 10px; border-radius: 16px; background: rgba(8,20,40,.78); border: 1px solid rgba(120,200,240,.25); box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+  .card .pic { flex: none; width: 58px; height: 58px; border-radius: 50%; background: #0f2a44 center 15% / 160% no-repeat; display: grid; place-items: center; border: 2px solid #35c9e8; }
+  .card .h { font-size: 17px; font-weight: 700; } .card .s { font-size: 14px; color: #a9c6e4; margin-top: 2px; }
+  .card.red { border-color: rgba(238,90,90,.7); } .card.red .pic { border-color: #ee5a5a; background-color: #3a1218; color: #ffb0b0; }
+  .dock { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; gap: 14px; align-items: flex-end; }
+  .cmd { width: 92px; text-align: center; }
+  .cmd .hex { position: relative; width: 74px; height: 74px; margin: 0 auto; border-radius: 22px; transform: rotate(45deg); background: linear-gradient(135deg, #17375e, #0a1a30); border: 2px solid rgba(120,200,240,.45); box-shadow: 0 6px 16px rgba(0,0,0,.5); }
+  .cmd .hex > * { transform: rotate(-45deg); }
+  .cmd .hex .ico { position: absolute; left: 50%; top: 50%; width: 32px; height: 32px; margin: -16px; color: #c8ecff; }
+  .cmd .lbl { margin-top: 12px; font-size: 15px; font-weight: 700; text-shadow: 0 2px 6px #000; }
+  .cmd.on .hex { background: linear-gradient(135deg, #3a8dff, #1b4f9c); border-color: #bcd8ff; box-shadow: 0 0 20px rgba(76,141,255,.8); }
+  .cmd .badge { position: absolute; right: -6px; top: -6px; transform: rotate(-45deg); min-width: 24px; height: 24px; border-radius: 12px; background: #ee5a5a; font-size: 14px; display: grid; place-items: center; font-weight: 800; }
+  .mini { position: absolute; left: 24px; bottom: 22px; width: 170px; height: 170px; border-radius: 50%; overflow: hidden; border: 3px solid rgba(120,200,240,.5); background: url(model_target.png) 50% 75% / 420%; box-shadow: 0 0 0 6px rgba(6,16,32,.7); }
+  .view { position: absolute; right: 24px; bottom: 26px; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
+  .seg { display: flex; padding: 4px; border-radius: 26px; background: rgba(8,20,40,.8); border: 1px solid rgba(120,200,240,.3); }
+  .seg span { padding: 8px 16px; border-radius: 20px; font-size: 15px; color: #9fc0e0; } .seg span.on { background: #2f86ff; color: #fff; }
+  .tag { position: absolute; padding: 6px 12px; border-radius: 18px; background: rgba(8,20,40,.8); font-size: 15px; font-weight: 700; border: 1px solid rgba(120,200,240,.4); }
+  .tag::after { content: ""; position: absolute; left: 50%; top: 100%; width: 2px; height: 34px; background: rgba(120,220,255,.6); }
+  .tag.hot { border-color: #ee5a5a; color: #ffd0d0; box-shadow: 0 0 14px rgba(238,90,90,.5); } .tag.hot::after { background: rgba(238,90,90,.8); }
+
+  /* ---------------- A: console bezel ---------------- */
+  .a .scene { inset: 70px 110px 150px 110px; border-radius: 26px; box-shadow: inset 0 0 80px rgba(0,0,0,.8), 0 0 0 2px rgba(53,201,232,.5), 0 0 40px rgba(53,201,232,.25); }
+  .a .bezel { position: absolute; inset: 0; pointer-events: none; background:
+      radial-gradient(ellipse at 50% -20%, rgba(53,201,232,.18), transparent 60%),
+      linear-gradient(#0b1626, #07101d); -webkit-mask: linear-gradient(#000 0 0) exclude, linear-gradient(#000 0 0); }
+  .a .frame-top { position: absolute; left: 0; right: 0; top: 0; height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 0 130px; }
+  .a .title { font-size: 26px; letter-spacing: 8px; color: #8ff3ff; text-shadow: 0 0 12px rgba(53,201,232,.8); }
+  .a .side { position: absolute; top: 90px; bottom: 170px; width: 110px; display: flex; flex-direction: column; justify-content: space-around; align-items: center; }
+  .a .side.l { left: 0; } .a .side.r { right: 0; }
+  .a .vg { width: 30px; height: 120px; border-radius: 15px; background: rgba(140,180,220,.15); position: relative; overflow: hidden; border: 1px solid rgba(53,201,232,.4); }
+  .a .vg i { position: absolute; left: 0; right: 0; bottom: 0; border-radius: 15px; background: linear-gradient(#8ff3ff, #1d7fa8); box-shadow: 0 0 10px #35c9e8; }
+  .a .vl { font-size: 13px; color: #9fc0e0; margin-top: 6px; text-align: center; } .a .vn { font-size: 22px; text-align: center; }
+  .a .deck { position: absolute; left: 0; right: 0; bottom: 0; height: 150px; display: flex; align-items: center; justify-content: center; gap: 18px; background: linear-gradient(#0b1828, #050c18); border-top: 2px solid rgba(53,201,232,.4); }
+  .a .key { width: 104px; height: 92px; border-radius: 14px; background: linear-gradient(#1b3456, #0c1a2e); border: 1px solid rgba(120,200,240,.4); box-shadow: 0 6px 0 #040a14, 0 10px 18px rgba(0,0,0,.6); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; font-size: 15px; font-weight: 700; color: #cfefff; }
+  .a .key.on { background: linear-gradient(#3a8dff, #1b4f9c); box-shadow: 0 2px 0 #040a14, 0 0 22px rgba(76,141,255,.8); transform: translateY(4px); }
+  .a .screen-msg { position: absolute; left: 50%; top: 92px; transform: translateX(-50%); font-size: 20px; color: #b9f6ff; letter-spacing: 2px; text-shadow: 0 0 10px rgba(53,201,232,.9); }
+  .a .scan { position: absolute; inset: 70px 110px 150px 110px; border-radius: 26px; pointer-events: none; background: repeating-linear-gradient(rgba(255,255,255,.03) 0 1px, transparent 1px 3px); }
+  .a .notice { position: absolute; right: 130px; top: 130px; width: 300px; }
+  .label { position: absolute; left: 16px; bottom: 12px; font-size: 12px; color: #6f86a8; z-index: 9; }
+</style>
+</head>
+<body>
+<script>
+const V = new URLSearchParams(location.search).get('v') || 'b';
+const I = {   // simple line icons
+  bolt: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>', data: '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>',
+  people: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-4 3.4-6 6.5-6s5.7 2 6.5 6"/><circle cx="17" cy="9" r="2.8"/><path d="M16 14.2c2.7.2 4.6 2 5.3 5.3"/>',
+  smile: '<circle cx="12" cy="12" r="9"/><path d="M8 14c1 1.5 2.4 2.2 4 2.2s3-.7 4-2.2M9 9.5h.01M15 9.5h.01"/>', shield: '<path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z"/>',
+  link: '<path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/>', eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  key: '<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3"/>', doc: '<path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h6"/>', flask: '<path d="M9 2h6M10 2v6L4 19a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3L14 8V2"/><path d="M7 15h10"/>',
+  cam: '<rect x="2" y="6" width="14" height="12" rx="2"/><path d="m16 10 6-3v10l-6-3"/>', chart: '<path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 6-6"/>', list: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  alert: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>', play: '<path d="m7 4 13 8-13 8z"/>', pause: '<path d="M7 4v16M17 4v16"/>',
+};
+const ico = (k, c = '', s = '') => `<svg class="ico" viewBox="0 0 24 24" style="${c ? 'color:' + c + ';' : ''}${s}">${I[k]}</svg>`;
+const ring = (pct, col, size = 78) => { const r = size / 2 - 5, C = 2 * Math.PI * r;
+  return `<svg width="${size}" height="${size}" style="position:absolute;inset:0;transform:rotate(-90deg)"><circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="rgba(140,180,220,.2)" stroke-width="6" fill="none"/><circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="${col}" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="${C * pct} ${C}" style="filter:drop-shadow(0 0 4px ${col})"/></svg>`; };
+const IDX = [['smile', '행복', 62, '#35c9e8'], ['shield', '사회 안정', 71, '#35c9e8'], ['link', '사회 정합', 58, '#35c9e8'], ['key', '자율성 (느끼는)', 66, '#35c9e8'], ['eye', '자율성 (실제)', 41, '#f2a03d']];
+const CMDS = [['doc', '정책', 0, 1], ['flask', '연구', 0, 0], ['people', '시민', 0, 0], ['cam', '관찰', 2, 0], ['chart', '보고서', 0, 0], ['list', '기록', 0, 0]];
+let html = '';
+if (V === 'b') {
+  document.body.className = 'b';
+  html += `<div class="scene"></div><div class="shade-top"></div><div class="shade-bot"></div>
+  <div class="emblem">${ring(0.4, '#35c9e8', 96)}<div class="core"></div><div class="eye"></div></div>
+  <div class="stage"><div class="t">LEVIATHAN · 섹터 알파</div><div class="v">위임 2단계</div><div class="bar"><i class="f"></i><i class="f"></i><i></i><i></i><i></i></div></div>
+  <div class="clock"><div class="d num">2071. 3. 14 &nbsp;16:00</div>
+    <div class="speed"><span class="rbtn">${ico('pause', '', 'width:16px;height:16px')}</span><span class="rbtn on">1×</span><span class="rbtn">2×</span><span class="rbtn">4×</span></div>
+    <div class="broadcast">“오늘도 힘찬 하루”</div></div>
+  <div class="res">
+    <div class="chip"><span class="ic" style="background:#4a3510">${ico('bolt', '#ffc35a')}</span><span class="n num">100</span></div>
+    <div class="chip"><span class="ic" style="background:#103448">${ico('data', '#7fe3ff')}</span><span class="n num">24</span></div>
+    <div class="chip"><span class="ic" style="background:#16324a">${ico('people', '#bfe0ff')}</span><span class="n num">10.0만</span></div></div>
+  <div class="crisis"><div class="dd num">D-12</div><div><div class="tt">게이트 앞 대기열이 길어진다</div><div class="ss">준비 40% · 눌러서 대비하기</div></div></div>
+  <div class="gauges">${IDX.map(([k, n, v, c]) => `<div class="gauge">${ring(v / 100, c)}<div class="in">${ico(k, c)}</div><div class="val num" style="color:${c === '#f2a03d' ? '#ffcf8f' : '#eaf3ff'}">${v}</div><div class="lab">${n}</div></div>`).join('')}</div>
+  <div class="feed">
+    <div class="card red"><div class="pic">${ico('alert', '#ffb0b0')}</div><div><div class="h">광장에 사람이 모인다</div><div class="s">문화·여가 · 긴장 82</div></div></div>
+    <div class="card"><div class="pic" style="background-image:url(face_c06.png)"></div><div><div class="h">한소미</div><div class="s">“아이가 묻더라. 전쟁이 뭐냐고.”</div></div></div>
+    <div class="card"><div class="pic">${ico('doc', '#7fe3ff')}</div><div><div class="h">정책을 바꿀 수 있다</div><div class="s">이번 달 결산 후 · 3일 남음</div></div></div></div>
+  <div class="tag hot" style="left:47%;top:58%">문화·여가 ⚠</div><div class="tag" style="left:30%;top:47%">에너지</div><div class="tag" style="left:63%;top:44%">연구</div><div class="tag" style="left:18%;top:66%">주거</div>
+  <div class="mini"></div>
+  <div class="dock">${CMDS.map(([k, n, b, on]) => `<div class="cmd${on ? ' on' : ''}"><div class="hex">${ico(k)}${b ? `<span class="badge num">${b}</span>` : ''}</div><div class="lbl">${n}</div></div>`).join('')}</div>
+  <div class="view"><div class="seg"><span>긴장</span><span>인구</span><span class="on">없음</span></div><div class="seg"><span class="on">도시 그림</span><span>입체 모형</span></div></div>`;
+} else {
+  document.body.className = 'a';
+  html += `<div class="bezel" style="background:linear-gradient(#0b1626,#07101d)"></div><div class="scene"></div><div class="scan"></div>
+  <div class="frame-top"><span class="title">LEVIATHAN</span><span class="num" style="font-size:28px;color:#cfefff">2071. 3. 14 · 16:00</span><span style="font-size:16px;color:#8ff3ff">위임 2단계 ▰▰▱▱▱</span></div>
+  <div class="screen-msg">“오늘도 힘찬 하루”</div>
+  <div class="side l">${IDX.slice(0, 3).map(([k, n, v, c]) => `<div><div class="vg"><i style="height:${v}%"></i></div><div class="vn num">${v}</div><div class="vl">${n}</div></div>`).join('')}</div>
+  <div class="side r">${IDX.slice(3).map(([k, n, v, c]) => `<div><div class="vg"><i style="height:${v}%;${c === '#f2a03d' ? 'background:linear-gradient(#ffd08a,#b46a10);box-shadow:0 0 10px #f2a03d' : ''}"></i></div><div class="vn num">${v}</div><div class="vl">${n.replace('자율성 ', '자율 ')}</div></div>`).join('')}
+    <div><div class="vn num" style="color:#ffc35a">100</div><div class="vl">에너지</div></div></div>
+  <div class="notice b" style="position:absolute"><div class="card red" style="background:rgba(8,20,40,.85)"><div class="pic" style="width:50px;height:50px;border-radius:50%;display:grid;place-items:center;border:2px solid #ee5a5a">${ico('alert', '#ffb0b0')}</div><div><div style="font-size:17px;font-weight:700">광장에 사람이 모인다</div><div style="font-size:14px;color:#a9c6e4">문화·여가 · 긴장 82</div></div></div></div>
+  <div class="deck">${CMDS.map(([k, n, b, on]) => `<div class="key${on ? ' on' : ''}">${ico(k, '', 'width:30px;height:30px')}${n}</div>`).join('')}
+    <div class="key" style="width:150px;background:linear-gradient(#5a3a10,#2a1a08);border-color:#f2a03d;color:#ffd9a8"><span class="num" style="font-size:26px">D-12</span>게이트 대기열</div></div>`;
+}
+html += `<div class="label">시안 ${V === 'b' ? 'B · 게임 HUD' : 'A · 관제 콘솔'} — 모양은 CSS 임시, 실제는 GPT 생성 테두리·아이콘으로</div>`;
+document.body.innerHTML = html;
+</script>
+</body>
+</html>

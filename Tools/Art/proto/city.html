@@ -1,0 +1,594 @@
+<!doctype html>
+<!-- City model prototype v2 (2026-11-26, free, option C): the main screen as the AI's control room. A dimmed pixel
+     panorama (pano_b.png) sets the mood behind a city model drawn in code. Drag pans (the city and the backdrop
+     follow the mouse), right drag turns, the wheel zooms; close in, the camera tilts to look down on a district.
+     v2: a city twice as large (18 x 12 city blocks, avenues every third street), the ground runs on to a hazy
+     horizon instead of ending at a table edge, varied buildings (podium towers, slabs, domes, cylinders, a stadium,
+     solar fields, warehouses with drone pads, cranes), an elevated maglev loop with trains, pods on every street,
+     drone lanes, avenue lights, distance fog, window lights at night. -->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>LEVIATHAN 도시 모형 시험 2</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b1426; font: 14px/1.5 "Pretendard", "Malgun Gothic", sans-serif; color: #e6eefc; }
+  canvas { display: block; }
+  .panel { position: absolute; background: rgba(25, 43, 70, 0.82); border: 1px solid rgba(53, 201, 232, 0.35); border-radius: 8px; padding: 12px 14px; }
+  /* v3 HUD (model view = option C): thin bracketed panels at the corners, data in the empty sky */
+  .hud { position: absolute; padding: 12px 14px; background: linear-gradient(90deg, rgba(8, 18, 36, 0.62), rgba(8, 18, 36, 0.38));
+    --c: rgba(53, 201, 232, 0.85);
+    background-image: linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)),
+      linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)),
+      linear-gradient(90deg, rgba(8, 18, 36, 0.62), rgba(8, 18, 36, 0.30));
+    background-size: 14px 2px, 2px 14px, 14px 2px, 2px 14px, 14px 2px, 2px 14px, 14px 2px, 2px 14px, 100% 100%;
+    background-position: 0 0, 0 0, 100% 0, 100% 0, 0 100%, 0 100%, 100% 100%, 100% 100%, 0 0;
+    background-repeat: no-repeat; }
+  .hud h3 { margin: 0 0 8px; font-size: 11px; letter-spacing: 2px; color: #35c9e8; font-weight: 600; }
+  .num { font-family: "Rajdhani", "Bahnschrift", "Segoe UI", sans-serif; font-weight: 600; }
+  #top { position: absolute; z-index: 2; left: 0; top: 0; right: 0; height: 44px; padding: 0 20px; display: flex; align-items: center; gap: 20px;
+    background: linear-gradient(rgba(6, 14, 30, 0.9), rgba(6, 14, 30, 0.55)); border-bottom: 1px solid rgba(53, 201, 232, 0.35); }
+  #top b { color: #35c9e8; letter-spacing: 3px; }
+  #top .sep { flex: 1; }
+  .tabs { display: flex; gap: 2px; background: rgba(5, 12, 26, 0.8); border: 1px solid rgba(53, 201, 232, 0.3); border-radius: 6px; padding: 2px; }
+  .tabs button, .btn { border: 0; background: transparent; color: #9fb3d1; font: inherit; font-size: 13px; padding: 4px 12px; border-radius: 4px; cursor: pointer; }
+  .tabs button.on, .btn.on { background: #4c8dff; color: white; }
+  .cells { display: flex; gap: 3px; } .cells i { width: 12px; height: 10px; transform: skewX(-20deg); border: 1px solid #35c9e8; }
+  .cells i.f { background: #35c9e8; }
+  #idx { left: 16px; top: 64px; width: 210px; }
+  .ix { margin: 0 0 9px; } .ix .l { display: flex; justify-content: space-between; font-size: 12px; color: #c4d2e8; }
+  .ix .l b { font-size: 18px; color: #e6eefc; } .ix .d { font-size: 11px; margin-left: 6px; }
+  .bar { height: 3px; background: rgba(159, 179, 209, 0.2); margin-top: 2px; } .bar i { display: block; height: 100%; background: #35c9e8; }
+  #alerts { right: 16px; top: 64px; width: 250px; }
+  .al { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; padding: 6px 0; border-top: 1px solid rgba(53, 201, 232, 0.15); cursor: pointer; }
+  .al:hover { background: rgba(76, 141, 255, 0.15); } .al .dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 5px; flex: none; }
+  .al small { display: block; color: #9fb3d1; }
+  #dock { left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; padding: 8px 14px; font-size: 12px; color: #9fb3d1; }
+  #dock .grp { display: flex; align-items: center; gap: 4px; }
+  #card { right: 16px; top: 64px; width: 250px; display: none; }
+  #card h3 { margin: 0 0 6px; font-size: 14px; color: #35c9e8; letter-spacing: 0; }
+  .nohud .hud, .nohud #top, .nohud #help { display: none !important; }
+  #toast { position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%); display: none; width: 360px; text-align: center; font-size: 13px; }
+  #card .row { display: flex; justify-content: space-between; font-size: 13px; margin: 2px 0; }
+  #card button { margin-top: 10px; width: 100%; padding: 8px; border: 0; border-radius: 6px; background: #4c8dff; color: white; font: inherit; cursor: pointer; }
+  #mini { right: 16px; bottom: 16px; padding: 8px; }
+  #mini canvas { cursor: pointer; }
+  #help { position: absolute; left: 16px; bottom: 16px; font-size: 11px; color: #7f93b3; width: 210px; }
+  #tip { position: absolute; pointer-events: none; background: rgba(5, 14, 28, 0.92); border: 1px solid #35c9e8; border-radius: 6px; padding: 2px 8px; font-size: 12px; display: none; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="top">
+  <b>LEVIATHAN</b><span style="color:#c4d2e8">섹터 알파</span>
+  <div class="tabs" id="view"><button data-v="image">도시 이미지</button><button data-v="model" class="on">입체 모형</button></div>
+  <span class="sep"></span>
+  <span id="zoomV" style="color:#7f93b3;font-size:12px"></span>
+  <span class="num" style="font-size:17px">2071.03.14 <span id="clock"></span></span>
+  <div class="tabs" id="speed"><button data-s="0">Ⅱ</button><button data-s="1" class="on">1×</button><button data-s="2">2×</button><button data-s="4">4×</button></div>
+  <span style="font-size:12px;color:#9fb3d1">위임 2단계</span><div class="cells"><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i><i></i></div>
+</div>
+<div id="idx" class="hud"><h3>핵심 지수</h3><div id="ixs"></div></div>
+<div id="alerts" class="hud"><h3>최근 경보</h3><div id="als"></div></div>
+<div id="card" class="hud"></div>
+<div id="dock" class="hud">
+  <div class="grp">겹 <button class="btn on" data-l="none">없음</button><button class="btn" data-l="tension">긴장</button><button class="btn" data-l="pop">인구</button></div>
+  <div class="grp">모형 <button class="btn on" data-st="solid">입체</button><button class="btn" data-st="holo">홀로그램</button></div>
+  <div class="grp">시각 <input type="range" id="time" min="0" max="24" step="0.25" value="15" style="width:120px"></div>
+</div>
+<div id="mini" class="hud" style="padding:8px"><canvas id="m" width="220" height="146"></canvas></div>
+<div id="help">드래그 이동 · 오른쪽 드래그 회전 · 휠 확대 · 구역 클릭 = 카드 · Esc 전체 보기</div>
+<div id="toast" class="hud"></div>
+<div id="tip"></div>
+<script>
+const cv = document.getElementById('c'), g = cv.getContext('2d');
+const mini = document.getElementById('m'), mg = mini.getContext('2d');
+let W, H;
+function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; }
+resize(); addEventListener('resize', resize);
+const pano = new Image(); pano.src = 'pano_b.png';
+let seed = 7; const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const pickR = a => a[Math.floor(rand() * a.length)];
+
+// ---------------------------------------------------------------- the plan: Tools/Art/city_guide.py's 9 x 6, each
+// letter now covering 2 x 2 city blocks; streets between blocks, an avenue every third street
+const BASE = ["HHHMMHHHS", "HHCCMHHRR", "EECAACCRR", "ELCAACUUH", "LLKUUDDHH", "LKKUUDDHH"];
+const PLAN = []; for (const row of BASE) { const r = [...row].map(ch => ch + ch).join(''); PLAN.push(r, r); }
+const ROWS = PLAN.length, COLS = PLAN[0].length, CELL = 100, ST = 18, AV = 40;
+const gap = i => (i % 3 === 0 ? AV : ST);                     // the road before block i
+const XS = [], YS = []; { let x = AV; for (let c = 0; c < COLS; c++) { XS.push(x); x += CELL + gap(c + 1); } }
+{ let y = AV; for (let r = 0; r < ROWS; r++) { YS.push(y); y += CELL + gap(r + 1); } }
+const CW = XS[COLS - 1] + CELL + AV, CH = YS[ROWS - 1] + CELL + AV;
+const D = {
+  H: ['주거', 'home', [236, 238, 244]], M: ['의료·생명', 'medical', [246, 230, 230]], S: ['공사 부지', 'site', [226, 212, 186]],
+  C: ['상업', 'shop', [214, 232, 252]], R: ['연구·개발', 'research', [222, 244, 234]], E: ['에너지·발전', 'energy', [214, 226, 244]],
+  A: ['관리 (AI 센터)', 'admin', [232, 250, 255]], L: ['물류·산업', 'logistics', [224, 224, 232]], U: ['문화·여가', 'culture', [232, 244, 240]],
+  K: ['치안·보안', 'security', [226, 228, 244]], Dd: ['교육', 'edu', [246, 240, 228]],
+};
+const kindAt = (c, r) => { const k = PLAN[r][c]; return k === 'D' ? 'Dd' : k; };
+const cellRect = (c, r) => { const x0 = XS[c], y0 = YS[ROWS - 1 - r]; return [x0, y0, x0 + CELL, y0 + CELL]; };
+const STATE = {};
+for (const k of Object.keys(D)) STATE[k] = { tension: Math.round(rand() * 85), pop: k === 'H' ? 58000 : Math.round(1500 + rand() * 9000), lit: 0.4 + rand() * 0.5 };
+STATE.U.tension = 82; STATE.S.pop = 0; STATE.A.tension = 12;
+
+// ---------------------------------------------------------------- the city's things
+// items are drawn far to near; an item is a list of parts drawn bottom-up (a podium, then its tower)
+const items = [], decals = [], lots = [], cranes = [];
+function item(k, cx, cy, parts) { items.push({ k, cx, cy, parts, win: rand() }); }
+const box = (x0, y0, x1, y1, z0, h, o = {}) => ({ t: 'box', x0, y0, x1, y1, z0, h, ...o });
+const cyl = (cx, cy, rad, z0, h, o = {}) => ({ t: 'cyl', cx, cy, rad, z0, h, sides: o.sides || 12, ...o });
+function tower(k, x, y, w, l, h) {   // podium + slimmer shaft + crown with a light band
+  const ph = 10 + rand() * 8, inset = Math.min(w, l) * 0.18;
+  const parts = [box(x, y, x + w, y + l, 0, ph), box(x + inset, y + inset, x + w - inset, y + l - inset, ph, h - ph)];
+  if (rand() < 0.6) parts.push(box(x + inset * 1.6, y + inset * 1.6, x + w - inset * 1.6, y + l - inset * 1.6, h, 6, { light: true }));
+  item(k, x + w / 2, y + l / 2, parts);
+}
+function slab(k, x, y, w, l, h) { item(k, x + w / 2, y + l / 2, [box(x, y, x + w, y + l, 0, h, { stripe: rand() < 0.5 })]); }
+const tall = r => r <= 3 ? 1 : r <= 7 ? 0.65 : 0.35;   // the back of the city stands taller
+
+for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+  const k = kindAt(c, r), [x0, y0, x1, y1] = cellRect(c, r), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  lots.push({ x0, y0, x1, y1, k, c, r });
+  const t = tall(r);
+  if (k === 'H') {
+    const v = rand();
+    if (v < 0.45) { // courtyard of slabs
+      slab(k, x0 + 4, y0 + 4, 92, 16, 40 + 60 * t * rand() + 20 * t); slab(k, x0 + 4, y0 + 80, 92, 16, 50 + 80 * t);
+      slab(k, x0 + 4, y0 + 24, 16, 52, 30 + 40 * t); decals.push({ t: 'rect', x0: x0 + 28, y0: y0 + 28, x1: x1 - 10, y1: y1 - 28, col: [200, 214, 206] });
+    } else if (v < 0.85) { // two towers and a low row
+      tower(k, x0 + 6, y0 + 50, 38, 38, 70 + 110 * t * (0.6 + rand() * 0.6)); tower(k, x0 + 56, y0 + 54, 36, 36, 60 + 90 * t * (0.6 + rand() * 0.6));
+      slab(k, x0 + 6, y0 + 6, 88, 22, 12);
+    } else { tower(k, x0 + 22, y0 + 22, 56, 56, 140 + 120 * t); }
+  } else if (k === 'C') {
+    const v = rand();
+    if (v < 0.5) { tower(k, x0 + 8, y0 + 8, 50, 50, 90 + 160 * t * rand() + 40); slab(k, x0 + 64, y0 + 8, 30, 86, 24 + rand() * 30); }
+    else if (v < 0.8) { for (const [a, b] of [[0, 0], [1, 0], [0, 1], [1, 1]]) tower(k, x0 + 6 + a * 50, y0 + 6 + b * 50, 40, 40, 40 + rand() * 120 * (0.5 + t)); }
+    else { decals.push({ t: 'disc', cx, cy, rad: 34, col: [190, 226, 240] }); item(k, cx, cy, [cyl(cx, cy, 10, 0, 18, { holo: true })]); }
+  } else if (k === 'M') {
+    if ((c + r) % 2 === 0) item(k, cx, cy, [box(x0 + 6, y0 + 6, x1 - 6, y1 - 6, 0, 16), box(x0 + 18, y0 + 30, x1 - 18, y1 - 14, 16, 34, { pad: true })]);
+    else { slab(k, x0 + 8, y0 + 8, 84, 30, 22); decals.push({ t: 'disc', cx, cy: cy + 20, rad: 22, col: [140, 196, 226] }); }
+  } else if (k === 'E') {
+    if ((c + r) % 2 === 0) decals.push({ t: 'solar', x0: x0 + 4, y0: y0 + 4, x1: x1 - 4, y1: y1 - 4 });
+    else { for (const [a, b] of [[0, 0], [1, 0], [0, 1]]) item(k, x0 + 28 + a * 46, y0 + 28 + b * 46, [cyl(x0 + 28 + a * 46, y0 + 28 + b * 46, 18, 0, 26, { band: true })]);
+      slab(k, x0 + 56, y0 + 56, 38, 38, 12); }
+  } else if (k === 'R') {
+    if ((c * 3 + r) % 3 === 0) item(k, cx, cy, [box(x0 + 10, y0 + 10, x1 - 10, y1 - 10, 0, 14), cyl(cx, cy, 24, 14, 14, { dome: true })]);
+    else { slab(k, x0 + 6, y0 + 6, 56, 30, 18); tower(k, x0 + 60, y0 + 40, 34, 50, 50 + rand() * 50); decals.push({ t: 'rect', x0: x0 + 8, y0: y0 + 50, x1: x0 + 52, y1: y1 - 8, col: [204, 222, 214] }); }
+  } else if (k === 'L') {
+    item(k, cx, cy, [box(x0 + 4, y0 + 10, x1 - 4, y1 - 24, 0, 16, { pad: true })]);
+    for (let i = 0; i < 5; i++) decals.push({ t: 'rect', x0: x0 + 6 + i * 18, y0: y0 + 80, x1: x0 + 20 + i * 18, y1: y0 + 92, col: pickR([[80, 120, 170], [200, 110, 80], [120, 150, 100]]) });
+  } else if (k === 'K') {
+    if ((c + r) % 2 === 0) item(k, cx, cy, [cyl(cx, cy, 12, 0, 90, { sides: 8 }), cyl(cx, cy, 20, 90, 10, { sides: 8, light: true })]);
+    else slab(k, x0 + 8, y0 + 8, 84, 60, 20);
+  } else if (k === 'U') {
+    const v = (c * 7 + r * 3) % 4;
+    if (v === 0) item(k, cx, cy, [cyl(cx, cy, 44, 0, 16, { sides: 20, ring: true })]);
+    else if (v === 1) decals.push({ t: 'rect', x0: x0 + 10, y0: y0 + 30, x1: x1 - 10, y1: y1 - 30, col: [110, 180, 220], water: true });
+    else { decals.push({ t: 'disc', cx, cy, rad: 38, col: [214, 222, 226] }); item(k, cx, cy, [cyl(cx, cy, 8, 0, 6, { holo: true })]); }
+  } else if (k === 'Dd') {
+    if ((c + r) % 2 === 0) { decals.push({ t: 'field', x0: x0 + 6, y0: y0 + 30, x1: x1 - 6, y1: y1 - 6 }); slab(k, x0 + 6, y0 + 4, 88, 20, 14); }
+    else { slab(k, x0 + 8, y0 + 8, 50, 84, 18); tower(k, x0 + 64, y0 + 50, 30, 42, 46); }
+  } else if (k === 'S') {
+    for (const [a, b, w, l] of [[0, 0, 100, 4], [0, 96, 100, 4], [0, 0, 4, 100], [96, 0, 4, 100]]) item(k, x0 + a + w / 2, y0 + b + l / 2, [box(x0 + a, y0 + b, x0 + a + w, y0 + b + l, 0, 7, { panel: true })]);
+    decals.push({ t: 'rect', x0: x0 + 4, y0: y0 + 4, x1: x1 - 4, y1: y1 - 4, col: [190, 168, 130] });
+    if ((c + r) % 2 === 0) { item(k, cx, cy, [box(cx - 22, cy - 22, cx + 22, cy + 22, 0, 40, { frame: true })]); cranes.push({ x: cx + 30, y: cy + 30, h: 110, ph: rand() * 6 }); }
+  }
+}
+// the AI centre: one landmark over its 4 x 4 blocks
+const aLots = lots.filter(l => l.k === 'A');
+const AX = (Math.min(...aLots.map(l => l.x0)) + Math.max(...aLots.map(l => l.x1))) / 2, AY = (Math.min(...aLots.map(l => l.y0)) + Math.max(...aLots.map(l => l.y1))) / 2;
+decals.push({ t: 'disc', cx: AX, cy: AY, rad: 200, col: [226, 232, 236] }, { t: 'rect', x0: AX - 40, y0: AY - 230, x1: AX + 40, y1: AY - 70, col: [110, 186, 226], water: true });
+item('A', AX, AY, [cyl(AX, AY, 110, 0, 40, { sides: 24 }), cyl(AX, AY, 70, 40, 90, { sides: 20 }), cyl(AX, AY, 26, 130, 120, { sides: 12, core: true })]);
+const centreOf = {};
+for (const k of Object.keys(D)) { const ls = lots.filter(l => l.k === k); centreOf[k] = [ls.reduce((s, l) => s + (l.x0 + l.x1) / 2, 0) / ls.length, ls.reduce((s, l) => s + (l.y0 + l.y1) / 2, 0) / ls.length]; }
+// a district's label and fly-to point sit on its own block nearest its middle (commerce rings the AI centre,
+// so its plain average would land on the centre)
+for (const k of Object.keys(D)) { if (k === 'A') { centreOf.A = [AX, AY]; continue; }
+  const [mx, my] = centreOf[k]; let best = null, bd = 1e18;
+  for (const l of lots) if (l.k === k) { const d = ((l.x0 + l.x1) / 2 - mx) ** 2 + ((l.y0 + l.y1) / 2 - my) ** 2; if (d < bd) { bd = d; best = l; } }
+  centreOf[k] = [(best.x0 + best.x1) / 2, (best.y0 + best.y1) / 2]; }
+// the maglev loop runs above the inner avenues
+const LOOP = [[XS[3] - AV / 2, YS[3] - AV / 2], [XS[15] - AV / 2, YS[3] - AV / 2], [XS[15] - AV / 2, YS[9] - AV / 2], [XS[3] - AV / 2, YS[9] - AV / 2]];
+const LOOPLEN = 2 * ((LOOP[1][0] - LOOP[0][0]) + (LOOP[2][1] - LOOP[1][1]));
+function onLoop(s) {
+  s = ((s % LOOPLEN) + LOOPLEN) % LOOPLEN;
+  for (let i = 0; i < 4; i++) { const a = LOOP[i], b = LOOP[(i + 1) % 4], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (s <= len) return [a[0] + (b[0] - a[0]) * s / len, a[1] + (b[1] - a[1]) * s / len]; s -= len; }
+  return LOOP[0];
+}
+// road centre lines (for pods) and avenue lights
+const roadsX = [AV / 2], roadsY = [AV / 2];
+for (let c = 0; c < COLS; c++) roadsX.push(XS[c] + CELL + gap(c + 1) / 2);
+for (let r = 0; r < ROWS; r++) roadsY.push(YS[r] + CELL + gap(r + 1) / 2);
+
+// ---------------------------------------------------------------- camera
+const HOME = 3000, DMIN = 600, DMAX = 4600;   // home: the city runs past the edges of the screen
+const cam = { tx: CW / 2, ty: CH * 0.42, dist: HOME, yaw: 0, goal: null };
+let style = 'solid', layer = 'none', hour = 15, focus = null, hover = null, basis, speed = 1, last = 0, HUD = true;
+const LENS = 0.68;   // the optical centre sits below the middle: the city settles low, the sky above holds the data band
+function pitch() { const t = Math.min(1, Math.max(0, (DMAX - cam.dist) / (DMAX - DMIN))); return (32 + 54 * t * t) * Math.PI / 180; }
+function setBasis() {
+  const p = pitch(), s = Math.sin(cam.yaw), c = Math.cos(cam.yaw);
+  const f = [s * Math.cos(p), c * Math.cos(p), -Math.sin(p)], r = [c, -s, 0];
+  const u = [r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0]];
+  basis = { f, r, u, pos: [cam.tx - cam.dist * f[0], cam.ty - cam.dist * f[1], -cam.dist * f[2]], F: H * 1.7 };
+}
+function proj(x, y, z) {
+  const { f, r, u, pos, F } = basis, vx = x - pos[0], vy = y - pos[1], vz = z - pos[2];
+  const zf = Math.max(1, vx * f[0] + vy * f[1] + vz * f[2]);
+  return [W / 2 + F * (vx * r[0] + vy * r[1]) / zf, H * LENS - F * (vx * u[0] + vy * u[1] + vz * u[2]) / zf, zf];
+}
+function ground(sx, sy) {
+  const { f, r, u, pos, F } = basis, a = (sx - W / 2) / F, b = -(sy - H * LENS) / F;
+  const d = [f[0] + a * r[0] + b * u[0], f[1] + a * r[1] + b * u[1], f[2] + a * r[2] + b * u[2]];
+  if (d[2] >= -1e-4) return null;
+  const t = -pos[2] / d[2]; return [pos[0] + t * d[0], pos[1] + t * d[1]];
+}
+const lotAt = (x, y) => lots.find(l => x >= l.x0 - ST / 2 && x <= l.x1 + ST / 2 && y >= l.y0 - ST / 2 && y <= l.y1 + ST / 2);
+function flyTo(k) { const [x, y] = centreOf[k]; cam.goal = { tx: x, ty: y, dist: 1500 }; focus = k; showCard(k); }
+
+// ---------------------------------------------------------------- drawing helpers
+const rgb = (c, a = 1) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+function poly(pts, fill, stroke, lw = 1) {
+  g.beginPath(); for (let i = 0; i < pts.length; i++) i ? g.lineTo(pts[i][0], pts[i][1]) : g.moveTo(pts[i][0], pts[i][1]); g.closePath();
+  if (fill) { g.fillStyle = fill; g.fill(); } if (stroke) { g.strokeStyle = stroke; g.lineWidth = lw; g.stroke(); }
+}
+const quad = (x0, y0, x1, y1, z) => [proj(x0, y0, z), proj(x1, y0, z), proj(x1, y1, z), proj(x0, y1, z)];
+const tensionColor = t => t >= 75 ? [238, 90, 90] : t >= 50 ? [245, 160, 70] : t >= 30 ? [230, 210, 90] : [53, 201, 232];
+const night = () => hour < 5 || hour >= 20 ? 1 : hour < 7 ? (7 - hour) / 2 : hour >= 17 ? (hour - 17) / 3 : 0;
+let N = 0, HOLO = false, HAZE = [150, 170, 196];
+function fogOf(x, y) { const d = Math.hypot(x - basis.pos[0], y - basis.pos[1]); return Math.min(0.85, Math.max(0, (d - cam.dist * 0.9) / (cam.dist * 2.2))); }
+function shade(base, k, s, fog) {
+  let c = base.map(v => v * s);
+  if (layer === 'tension') c = mix(c, tensionColor(STATE[k].tension), 0.55);
+  c = c.map(v => v * (1 - N * 0.72));
+  return mix(c, HAZE, fog);
+}
+
+// one side face of a prism / box from a to b at heights z0..z1
+function face(ax, ay, bx, by, z0, z1, k, s, fog, o, win) {
+  const pts = [proj(ax, ay, z0), proj(bx, by, z0), proj(bx, by, z1), proj(ax, ay, z1)];
+  const hl = focus === k || hover === k;
+  if (HOLO) {
+    const c = layer === 'tension' ? tensionColor(STATE[k].tension) : hl ? [76, 141, 255] : [53, 201, 232];
+    poly(pts, rgb(c, 0.09 * s * (1 - fog)), rgb(c, 0.5 * (1 - fog)));
+    return;
+  }
+  const base = o.panel ? [244, 244, 240] : D[k][2];
+  poly(pts, rgb(shade(base, k, s, fog)), hl ? '#4c8dff' : rgb([40, 50, 70], 0.35 * (1 - fog)), hl ? 1.6 : 1);
+  if (o.band || o.light) { const a = proj(ax, ay, (z0 + z1) / 2), b = proj(bx, by, (z0 + z1) / 2); g.strokeStyle = rgb([90, 225, 245], 0.9 * (1 - fog)); g.lineWidth = 2; g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke(); }
+  if (o.panel || o.frame) return;
+  // windows: rows of glass, lit by the district's people at night; cheap bands when far
+  const len = Math.hypot(bx - ax, by - ay), mid = proj((ax + bx) / 2, (ay + by) / 2, (z0 + z1) / 2), px = basis.F / mid[2];
+  const lit = layer === 'pop' || N > 0.25;
+  if (px * 5 < 1.6) {
+    if (!lit) return;
+    g.fillStyle = rgb([255, 205, 120], 0.35 * STATE[k].lit * (1 - fog)); poly(pts, null);
+    g.beginPath(); for (let i = 0; i < pts.length; i++) i ? g.lineTo(pts[i][0], pts[i][1]) : g.moveTo(pts[i][0], pts[i][1]); g.closePath(); g.fill();
+    return;
+  }
+  const cols = Math.max(1, Math.floor(len / 7)), sz = Math.max(1, px * 2.6);
+  for (let z = z0 + 5; z < z1 - 3; z += 5.5) for (let i = 0; i < cols; i++) {
+    const t = (i + 0.5) / cols, q = proj(ax + (bx - ax) * t, ay + (by - ay) * t, z);
+    const on = lit && ((Math.sin(i * 12.9898 + z * 78.233 + win * 437) * 43758.5) % 1 + 1) % 1 < STATE[k].lit * (layer === 'pop' ? 0.8 : N * 0.5);
+    g.fillStyle = on ? rgb([255, 212, 128], 1 - fog * 0.7) : rgb(mix([96 - N * 60, 150 - N * 100, 196 - N * 110], HAZE, fog), 0.85);
+    g.fillRect(q[0] - sz / 2, q[1] - sz * 0.6, sz, sz * 1.2);
+  }
+}
+function drawPart(p, k, fog, win) {
+  const cam3 = basis.pos;
+  if (p.t === 'box') {
+    const z1 = p.z0 + p.h;
+    if (cam3[1] < p.y0) face(p.x0, p.y0, p.x1, p.y0, p.z0, z1, k, 0.95, fog, p, win);
+    if (cam3[1] > p.y1) face(p.x1, p.y1, p.x0, p.y1, p.z0, z1, k, 0.75, fog, p, win);
+    if (cam3[0] < p.x0) face(p.x0, p.y1, p.x0, p.y0, p.z0, z1, k, 0.82, fog, p, win);
+    if (cam3[0] > p.x1) face(p.x1, p.y0, p.x1, p.y1, p.z0, z1, k, 0.82, fog, p, win);
+    const top = quad(p.x0, p.y0, p.x1, p.y1, z1);
+    if (HOLO) poly(top, rgb([53, 201, 232], 0.14 * (1 - fog)), rgb(layer === 'tension' ? tensionColor(STATE[k].tension) : [53, 201, 232], 0.7 * (1 - fog)));
+    else {
+      poly(top, rgb(shade(p.panel ? [250, 250, 248] : D[k][2], k, 1.06, fog)), rgb([40, 50, 70], 0.35 * (1 - fog)));
+      if (p.pad) { const cx = (p.x0 + p.x1) / 2, cy = (p.y0 + p.y1) / 2, rr = Math.min(p.x1 - p.x0, p.y1 - p.y0) * 0.3; ring(cx, cy, rr, z1 + 0.2, [90, 225, 245], 1 - fog); }
+      if (p.frame) { g.strokeStyle = rgb([150, 150, 150], 1 - fog); g.lineWidth = 1; for (let z = p.z0; z <= z1; z += 8) poly(quad(p.x0, p.y0, p.x1, p.y1, z), null, rgb([120, 120, 120], 0.8 * (1 - fog))); }
+    }
+  } else {   // a prism: sides facing the camera, then the top
+    const n = p.sides, z1 = p.z0 + p.h, pts = [];
+    for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; pts.push([p.cx + Math.cos(a) * p.rad, p.cy + Math.sin(a) * p.rad]); }
+    const fs = [];
+    for (let i = 0; i < n; i++) { const a = pts[i], b = pts[(i + 1) % n], mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, nx = mx - p.cx, ny = my - p.cy;
+      if (nx * (cam3[0] - mx) + ny * (cam3[1] - my) > 0) fs.push([a, b, Math.hypot(cam3[0] - mx, cam3[1] - my), 0.7 + 0.3 * Math.max(0, (nx * -0.6 + ny * -0.8) / p.rad)]); }
+    fs.sort((a, b) => b[2] - a[2]);
+    if (!p.ring) for (const [a, b, , s] of fs) face(a[0], a[1], b[0], b[1], p.z0, z1, k, s, fog, p.core ? { light: true } : p, win);
+    const top = pts.map(q => proj(q[0], q[1], z1));
+    if (p.core) { poly(top, rgb([140, 240, 255], 0.95)); return; }
+    if (p.ring) { // a stadium: the outer wall, a green field inside
+      for (const [a, b, , s] of fs) face(a[0], a[1], b[0], b[1], p.z0, z1, k, s, fog, { panel: true }, win);
+      poly(top, rgb(shade([236, 240, 238], k, 1, fog)));
+      poly(pts.map(q => proj(p.cx + (q[0] - p.cx) * 0.72, p.cy + (q[1] - p.cy) * 0.72, z1 + 0.1)), rgb(mix([110, 170, 110].map(v => v * (1 - N * 0.7)), HAZE, fog)));
+      return;
+    }
+    if (p.holo) { poly(top, rgb([120, 235, 255], 0.5)); const tt = performance.now() / 600; ring(p.cx, p.cy, p.rad * 2.2 + Math.sin(tt) * 3, z1 + 14, [120, 235, 255], 0.8); return; }
+    poly(top, HOLO ? rgb([53, 201, 232], 0.15) : rgb(shade(p.dome ? [244, 246, 248] : D[k][2], k, 1.08, fog)), HOLO ? rgb([53, 201, 232], 0.7) : rgb([40, 50, 70], 0.35 * (1 - fog)));
+    if (p.dome) poly(pts.map(q => proj(p.cx + (q[0] - p.cx) * 0.6, p.cy + (q[1] - p.cy) * 0.6, z1 + p.rad * 0.5)), HOLO ? null : rgb(shade([250, 250, 252], k, 1.1, fog)));
+  }
+}
+function ring(cx, cy, rad, z, col, a, lw = 2) {
+  g.strokeStyle = rgb(col, a); g.lineWidth = lw; g.beginPath();
+  for (let i = 0; i <= 28; i++) { const q = proj(cx + Math.cos(i / 28 * 6.2832) * rad, cy + Math.sin(i / 28 * 6.2832) * rad, z); i ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1]); }
+  g.stroke();
+}
+function line3(a, b, col, lw) { const p = proj(...a), q = proj(...b); g.strokeStyle = col; g.lineWidth = lw; g.beginPath(); g.moveTo(p[0], p[1]); g.lineTo(q[0], q[1]); g.stroke(); }
+
+// ---------------------------------------------------------------- the frame
+function draw(time) {
+  setBasis();
+  N = night(); HOLO = style === 'holo';
+  HAZE = mix([168, 186, 210], [22, 34, 64], N);
+  // backdrop: the panorama, dimmed; it follows the city a little (same direction as the drag)
+  g.fillStyle = '#0b1426'; g.fillRect(0, 0, W, H);
+  if (pano.complete) {
+    const s = Math.max(W / pano.width, H / pano.height) * 1.2, pw = pano.width * s, ph = pano.height * s;
+    g.globalAlpha = 0.6 - N * 0.25;
+    g.drawImage(pano, (W - pw) / 2 - (cam.tx - CW / 2) * 0.04 - cam.yaw * 140, (H - ph) / 2 + (cam.ty - CH / 2) * 0.03 - 60, pw, ph);
+    g.globalAlpha = 1;
+  }
+  // the ground runs on to the horizon; haze over the far ground
+  let hz = 0; while (hz < H && !ground(W / 2, hz)) hz += 3;
+  const gtop = Math.max(0, hz);
+  const gr = g.createLinearGradient(0, gtop, 0, Math.min(H, gtop + H * 0.35));
+  const groundCol = HOLO ? [10, 26, 48] : mix([126, 136, 152], [26, 34, 56], N);
+  gr.addColorStop(0, rgb(HOLO ? [20, 40, 70] : HAZE, 0)); gr.addColorStop(0.25, rgb(HOLO ? [10, 30, 56] : HAZE, 0.9)); gr.addColorStop(1, rgb(groundCol, 1));
+  g.fillStyle = gr; g.fillRect(0, gtop, W, H - gtop);
+  if (HOLO) { g.fillStyle = 'rgba(6,14,30,0.5)'; g.fillRect(0, 0, W, H); }
+  // lots and decals
+  const near = 1 - Math.min(1, Math.max(0, (cam.dist - DMIN) / (2400 - DMIN)));
+  for (const l of lots) {
+    const fog = fogOf((l.x0 + l.x1) / 2, (l.y0 + l.y1) / 2), hl = focus === l.k || hover === l.k;
+    let fill;
+    if (HOLO) fill = layer === 'tension' ? rgb(tensionColor(STATE[l.k].tension), 0.22 * (1 - fog)) : rgb([53, 201, 232], 0.05 * (1 - fog));
+    else fill = rgb(shade([210, 214, 212], l.k, 1, fog));
+    poly(quad(l.x0, l.y0, l.x1, l.y1, 0.1), fill, hl ? '#4c8dff' : HOLO ? rgb([53, 201, 232], 0.18 * (1 - fog)) : null, hl ? 2.5 : 1);
+  }
+  for (const d of decals) drawDecal(d);
+  // avenue lights and pods on every road
+  const lights = N > 0.2 || HOLO;
+  for (let i = 0; i < roadsY.length; i++) {
+    const y = roadsY[i], wide = i % 3 === 0;
+    for (let k = 0; k < (wide ? 9 : 4); k++) { const x = (time * (wide ? 0.07 : 0.05) * (k % 2 ? 1 : -1) + k * CW / (wide ? 9 : 4) + i * 97 + CW * 10) % CW, p = proj(x, y + (k % 2 ? 4 : -4), 1);
+      g.fillStyle = rgb(k % 2 ? [255, 230, 200] : [150, 235, 255], 0.95 * (1 - fogOf(x, y))); g.fillRect(p[0] - 2, p[1] - 1.5, 4, 3); }
+    if (wide && lights) for (let x = 0; x < CW; x += 60) { const p = proj(x, y, 2); g.fillStyle = rgb([120, 225, 255], 0.5 * (1 - fogOf(x, y))); g.fillRect(p[0] - 1, p[1] - 1, 2, 2); }
+  }
+  for (let i = 0; i < roadsX.length; i++) {
+    const x = roadsX[i], wide = i % 3 === 0;
+    for (let k = 0; k < (wide ? 7 : 3); k++) { const y = (time * (wide ? 0.06 : 0.04) * (k % 2 ? 1 : -1) + k * CH / (wide ? 7 : 3) + i * 61 + CH * 10) % CH, p = proj(x + (k % 2 ? 4 : -4), y, 1);
+      g.fillStyle = rgb(k % 2 ? [255, 230, 200] : [150, 235, 255], 0.95 * (1 - fogOf(x, y))); g.fillRect(p[0] - 1.5, p[1] - 2, 3, 4); }
+  }
+  // the maglev guideway, its pillars and trains
+  const MZ = 26;
+  for (let s = 0; s < LOOPLEN; s += 90) { const [x, y] = onLoop(s); line3([x, y, 0], [x, y, MZ], rgb(mix([200, 206, 214].map(v => v * (1 - N * 0.6)), HAZE, fogOf(x, y))), 2); }
+  for (let i = 0; i < 4; i++) { const a = LOOP[i], b = LOOP[(i + 1) % 4]; line3([a[0], a[1], MZ], [b[0], b[1], MZ], HOLO ? 'rgba(90,225,245,0.8)' : rgb(mix([236, 240, 244].map(v => v * (1 - N * 0.5)), HAZE, 0.2)), 5);
+    line3([a[0], a[1], MZ + 1], [b[0], b[1], MZ + 1], 'rgba(90,225,245,0.8)', 1); }
+  // buildings far to near
+  const pos = basis.pos;
+  items.sort((a, b) => Math.hypot(b.cx - pos[0], b.cy - pos[1]) - Math.hypot(a.cx - pos[0], a.cy - pos[1]));
+  // trains are sorted in with the buildings
+  const trains = [0, 0.5].map(o => { const s = (time * 0.12 + o * LOOPLEN); return { s, p: onLoop(s) }; });
+  let ti = 0; trains.sort((a, b) => Math.hypot(b.p[0] - pos[0], b.p[1] - pos[1]) - Math.hypot(a.p[0] - pos[0], a.p[1] - pos[1]));
+  for (const it of items) {
+    while (ti < trains.length && Math.hypot(trains[ti].p[0] - pos[0], trains[ti].p[1] - pos[1]) > Math.hypot(it.cx - pos[0], it.cy - pos[1])) drawTrain(trains[ti++].s, MZ);
+    const fog = fogOf(it.cx, it.cy);
+    for (const p of it.parts) drawPart(p, it.k, fog, it.win);
+  }
+  while (ti < trains.length) drawTrain(trains[ti++].s, MZ);
+  // AI centre ring, cranes, drones, people
+  const t = time / 1000;
+  ring(AX, AY, 150, 290, [90, 230, 255], 0.9, 3); ring(AX, AY, 150, 290 + Math.sin(t) * 6, [90, 230, 255], 0.35, 8);
+  for (const c of cranes) { const a = c.ph + t * 0.15, top = [c.x, c.y, c.h], jib = [c.x + Math.cos(a) * 70, c.y + Math.sin(a) * 70, c.h], back = [c.x - Math.cos(a) * 22, c.y - Math.sin(a) * 22, c.h];
+    const col = rgb(mix([235, 236, 238].map(v => v * (1 - N * 0.5)), HAZE, fogOf(c.x, c.y)));
+    line3([c.x, c.y, 0], top, col, 3); line3(back, jib, col, 2); line3(jib, [jib[0], jib[1], c.h - 30 + Math.sin(t) * 6], 'rgba(120,120,120,0.8)', 1);
+    const bl = proj(...top); if (Math.sin(t * 4) > 0) { g.fillStyle = '#ff5050'; g.fillRect(bl[0] - 2, bl[1] - 6, 4, 4); } }
+  drawDrones(time, near);
+  if (near > 0.15) drawPeople(time, near);
+  for (const k of Object.keys(D)) if (STATE[k].tension >= 75) { const [x, y] = centreOf[k], ph = (time / 1400) % 1; ring(x, y, 40 + ph * 220, 1, [238, 90, 90], 1 - ph, 2.5); }
+  if (HUD) { drawSky(time, hz); drawTags(near); }
+  drawMini();
+}
+function drawDecal(d) {
+  const fog = fogOf(d.cx ?? (d.x0 + d.x1) / 2, d.cy ?? (d.y0 + d.y1) / 2);
+  if (d.t === 'rect') poly(quad(d.x0, d.y0, d.x1, d.y1, 0.2), HOLO ? rgb([53, 201, 232], d.water ? 0.25 : 0.08) : rgb(mix(d.col.map(v => v * (1 - N * (d.water ? 0.55 : 0.7))), HAZE, fog)));
+  else if (d.t === 'disc') { const pts = []; for (let i = 0; i < 24; i++) { const a = i / 24 * 6.2832; pts.push(proj(d.cx + Math.cos(a) * d.rad, d.cy + Math.sin(a) * d.rad, 0.2)); }
+    poly(pts, HOLO ? rgb([53, 201, 232], 0.08) : rgb(mix(d.col.map(v => v * (1 - N * 0.7)), HAZE, fog)), HOLO ? rgb([53, 201, 232], 0.4) : rgb([255, 255, 255], 0.3)); }
+  else if (d.t === 'solar') for (let y = d.y0; y < d.y1 - 6; y += 10) poly([proj(d.x0, y, 2), proj(d.x1, y, 2), proj(d.x1, y + 7, 5), proj(d.x0, y + 7, 5)], HOLO ? rgb([53, 201, 232], 0.2) : rgb(mix([50, 80, 150].map(v => v * (1 - N * 0.5)), HAZE, fog)), rgb([150, 180, 220], 0.4));
+  else if (d.t === 'field') { poly(quad(d.x0, d.y0, d.x1, d.y1, 0.2), HOLO ? rgb([53, 201, 232], 0.1) : rgb(mix([196, 96, 80].map(v => v * (1 - N * 0.6)), HAZE, fog)));
+    poly(quad(d.x0 + 8, d.y0 + 8, d.x1 - 8, d.y1 - 8, 0.3), HOLO ? null : rgb(mix([96, 160, 96].map(v => v * (1 - N * 0.6)), HAZE, fog))); }
+}
+function drawTrain(s, z) {
+  for (let i = 0; i < 3; i++) { const a = onLoop(s - i * 30), b = onLoop(s - i * 30 - 26);
+    line3([a[0], a[1], z + 4], [b[0], b[1], z + 4], HOLO ? 'rgba(160,240,255,0.95)' : N > 0.3 ? 'rgba(255,235,190,0.95)' : 'rgba(250,252,255,1)', 7);
+    line3([a[0], a[1], z + 4], [b[0], b[1], z + 4], 'rgba(60,160,220,0.9)', 2); }
+}
+function drawDrones(time, near) {
+  // drone lanes: three straight corridors, a stream of lights each
+  const lanes = [[[0, CH * 0.3], [CW, CH * 0.45]], [[CW * 0.2, 0], [CW * 0.5, CH]], [[CW, CH * 0.8], [0, CH * 0.65]]];
+  for (const [a, b] of lanes) {
+    const z = 110;
+    if (near < 0.5) line3([a[0], a[1], z], [b[0], b[1], z], 'rgba(120,230,255,0.12)', 6);
+    for (let i = 0; i < 10; i++) { const t = ((time * 0.00004 + i / 10) % 1), x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t;
+      const sh = proj(x, y, 0), p = proj(x, y, z);
+      if (near > 0.3) { g.fillStyle = `rgba(0,0,0,${0.2 * near})`; g.beginPath(); g.ellipse(sh[0], sh[1], 4, 2, 0, 0, 7); g.fill(); }
+      g.fillStyle = 'rgba(170,245,255,0.95)'; g.fillRect(p[0] - 2.5, p[1] - 1.5, 5, 3); }
+  }
+}
+function drawPeople(time, near) {
+  let s = 11; const r = () => (s = (s * 48271) % 2147483647) / 2147483647;
+  for (const l of lots) {
+    const c = proj((l.x0 + l.x1) / 2, (l.y0 + l.y1) / 2, 0);
+    if (c[0] < -200 || c[0] > W + 200 || c[1] < -200 || c[1] > H + 200) { for (let i = 0; i < 40; i++) r(); continue; }
+    const st = STATE[l.k], count = Math.min(16, Math.round(st.pop / 3000) + 3) + (st.tension >= 50 ? 8 : 0);
+    for (let i = 0; i < count; i++) {
+      const e = r(), side = Math.floor(r() * 4), sp = 0.01 + r() * 0.02, ph = (time * sp / 100 + e) % 1;
+      let x, y;
+      if (st.tension >= 50 && i >= count - 8) { const a = i * 1.7 + time / 2400; x = (l.x0 + l.x1) / 2 + Math.cos(a) * 9; y = (l.y0 + l.y1) / 2 + Math.sin(a) * 9; }
+      else { x = side < 2 ? l.x0 - 4 + ph * (CELL + 8) : side === 2 ? l.x0 - 4 : l.x1 + 4; y = side >= 2 ? l.y0 - 4 + ph * (CELL + 8) : side === 0 ? l.y0 - 4 : l.y1 + 4; }
+      const p = proj(x, y, 0), q = proj(x, y, 1.8);
+      g.strokeStyle = HOLO ? `rgba(220,250,255,${near})` : N > 0.4 ? `rgba(255,220,160,${near})` : `rgba(30,40,60,${near})`;
+      g.lineWidth = Math.max(1.5, 2600 / p[2]); g.beginPath(); g.moveTo(p[0], p[1]); g.lineTo(q[0], q[1]); g.stroke();
+    }
+  }
+}
+function drawMini() {
+  const mw = mini.width, mh = mini.height, s = Math.min(mw / CW, mh / CH), ox = (mw - CW * s) / 2, oy = (mh - CH * s) / 2;
+  const M = (x, y) => [ox + x * s, oy + (CH - y) * s];
+  mg.fillStyle = '#0b1426'; mg.fillRect(0, 0, mw, mh);
+  for (const l of lots) { const a = M(l.x0, l.y1);
+    mg.fillStyle = layer === 'tension' ? rgb(tensionColor(STATE[l.k].tension), 0.85) : rgb(D[l.k][2], focus === l.k ? 1 : 0.5);
+    mg.fillRect(a[0], a[1], CELL * s, CELL * s); }
+  let top = 60; while (top < H && !ground(W / 2, top)) top += 4; top += 8;
+  const cs = [[0, top], [W, top], [W, H], [0, H]].map(([x, y]) => ground(x, y)).filter(Boolean);
+  mg.save(); mg.beginPath(); mg.rect(0, 0, mw, mh); mg.clip();
+  if (cs.length === 4) { mg.strokeStyle = '#4c8dff'; mg.lineWidth = 2; mg.beginPath(); cs.forEach((c, i) => { const p = M(c[0], c[1]); i ? mg.lineTo(p[0], p[1]) : mg.moveTo(p[0], p[1]); }); mg.closePath(); mg.stroke(); }
+  mg.restore();
+  mini.toWorld = (mx, my) => [(mx - ox) / s, CH - (my - oy) / s];
+}
+function showCard(k) {
+  const st = STATE[k], c = document.getElementById('card'), stage = st.tension >= 80 ? '계기' : st.tension >= 60 ? '모임' : st.tension >= 40 ? '수군거림' : st.tension >= 20 ? '불만' : '잠잠';
+  c.style.display = 'block';
+  c.innerHTML = `<h3>${D[k][0]}</h3>
+    <div class="row"><span>인구</span><b>${st.pop.toLocaleString()}명</b></div>
+    <div class="row"><span>긴장</span><b style="color:${rgb(tensionColor(st.tension))}">${st.tension} · ${stage}</b></div>
+    <div class="row"><span>입주·불빛</span><b>${Math.round(st.lit * 100)}%</b></div>
+    <button onclick="location.href='observe.html?block=${D[k][1]}'">카메라 보기 (블록 관찰)</button>
+    <button style="background:#192b46;border:1px solid #35c9e8" onclick="cam.goal={tx:${centreOf[k][0]},ty:${centreOf[k][1]},dist:${DMIN + 100}}">위에서 내려다보기</button>`;
+}
+
+// ---------------------------------------------------------------- input
+let drag = null;
+cv.addEventListener('contextmenu', e => e.preventDefault());
+cv.addEventListener('mousedown', e => { drag = { x: e.clientX, y: e.clientY, btn: e.button, moved: 0, g: ground(e.clientX, e.clientY) }; cam.goal = null; });
+addEventListener('mouseup', e => {
+  if (drag && drag.moved < 4 && drag.btn === 0) { const gp = ground(e.clientX, e.clientY), l = gp && lotAt(gp[0], gp[1]); if (l) { focus = l.k; showCard(l.k); } }
+  drag = null;
+});
+addEventListener('mousemove', e => {
+  if (drag) {
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.moved += Math.abs(dx) + Math.abs(dy); drag.x = e.clientX; drag.y = e.clientY;
+    if (drag.btn === 2) cam.yaw += dx * 0.005;
+    else if (drag.g) {   // the ground point under the mouse stays under the mouse: the city follows the hand
+      setBasis(); const now = ground(e.clientX, e.clientY);
+      if (now) { cam.tx += drag.g[0] - now[0]; cam.ty += drag.g[1] - now[1]; }
+    }
+    cam.tx = Math.max(-300, Math.min(CW + 300, cam.tx)); cam.ty = Math.max(-300, Math.min(CH + 300, cam.ty));
+  }
+  const gp = ground(e.clientX, e.clientY), l = gp && lotAt(gp[0], gp[1]), tip = document.getElementById('tip');
+  hover = l ? l.k : null;
+  if (l && !drag) { tip.style.display = 'block'; tip.style.left = e.clientX + 14 + 'px'; tip.style.top = e.clientY + 10 + 'px'; tip.textContent = `${D[l.k][0]} · 긴장 ${STATE[l.k].tension}`; }
+  else tip.style.display = 'none';
+});
+cv.addEventListener('wheel', e => {
+  e.preventDefault(); cam.goal = null;
+  const before = ground(e.clientX, e.clientY);
+  cam.dist = Math.max(DMIN, Math.min(DMAX, cam.dist * (e.deltaY > 0 ? 1.12 : 0.89)));
+  setBasis(); const after = ground(e.clientX, e.clientY);
+  if (before && after) { cam.tx += before[0] - after[0]; cam.ty += before[1] - after[1]; }
+}, { passive: false });
+mini.addEventListener('click', e => { const r = mini.getBoundingClientRect(), [x, y] = mini.toWorld(e.clientX - r.left, e.clientY - r.top), l = lotAt(x, y); if (l) flyTo(l.k); });
+addEventListener('keydown', e => { if (e.key === 'Escape') { cam.goal = { tx: CW / 2, ty: CH * 0.42, dist: HOME }; focus = null; document.getElementById('card').style.display = 'none'; } });
+function pick(sel, attr, set) { for (const b of document.querySelectorAll(sel)) b.onclick = () => { for (const o of document.querySelectorAll(sel)) o.classList.toggle('on', o === b); set(b.dataset[attr]); }; }
+const mark = (sel, attr, v) => { for (const o of document.querySelectorAll(sel)) o.classList.toggle('on', o.dataset[attr] === v); };
+pick('[data-l]', 'l', v => layer = v);
+pick('[data-st]', 'st', v => style = v);
+pick('[data-s]', 's', v => speed = +v);
+pick('[data-v]', 'v', v => { const t = document.getElementById('toast');
+  if (v === 'image') { t.style.display = 'block'; t.innerHTML = '<h3>도시 이미지 보기</h3>모형을 바탕으로 그린 도시 그림 위에 A안 틀(지금 게임의 메인 화면)을 씌우는 모드입니다. 이 시안에는 아직 없습니다.<br><br><button class="btn on" onclick="document.querySelector(\'[data-v=model]\').click()">입체 모형으로</button>'; }
+  else t.style.display = 'none'; });
+document.getElementById('time').oninput = e => { hour = +e.target.value; };
+for (const [k, v] of new URLSearchParams(location.search)) {   // ?style=holo&layer=tension&hour=21&focus=H&dist=900 (screenshots)
+  if (k === 'style') { style = v; mark('[data-st]', 'st', v); } if (k === 'layer') { layer = v; mark('[data-l]', 'l', v); } if (k === 'hour') { hour = +v; speed = 0; mark('[data-s]', 's', '0'); }
+  if (k === 'focus') { const [x, y] = centreOf[v]; cam.tx = x; cam.ty = y; cam.dist = 1300; focus = v; showCard(v); }
+  if (k === 'dist') cam.dist = +v;
+  if (k === 'hud' && v === '0') { HUD = false; document.body.classList.add('nohud'); }
+}
+// ---------------------------------------------------------------- HUD data (made up for the trial; the game feeds the real values)
+const IDX = [['행복', 62, 1.2], ['사회 안정', 71, -0.4], ['사회 정합', 58, 0.8], ['자율성 (인지)', 66, 0.3], ['자율성 (실질)', 41, -1.1]];
+document.getElementById('ixs').innerHTML = IDX.map(([n, v, d]) => {
+  const good = n === '자율성 (실질)' ? d < 0 : d > 0, col = n === '자율성 (실질)' && d < 0 ? '#f2a03d' : good ? '#4fd18b' : '#ee5a5a';
+  return `<div class="ix"><div class="l"><span>${n}</span><span><b class="num">${v}</b><span class="d num" style="color:${col}">${d > 0 ? '▲' : '▼'}${Math.abs(d)}</span></span></div><div class="bar"><i style="width:${v}%;background:${v < 45 ? '#f2a03d' : '#35c9e8'}"></i></div></div>`; }).join('');
+const ALERTS = [['U', '#ee5a5a', '문화·여가 · 모임', '광장에 사람이 모이고 있다 · 긴장 82'], ['K', '#f2a03d', '치안·보안 · 게이트', '바깥 대기열 1,240명 · 어제보다 +180'], ['E', '#f2a03d', '에너지·발전 · 예비율 12%', '오후 2시 냉방 수요 최고치 예상'], ['H', '#35c9e8', '주거 · 주목 시민', '한소미가 3일째 집 밖에 나오지 않았다']];
+document.getElementById('als').innerHTML = ALERTS.map(([k, c, a, b]) => `<div class="al" onclick="flyTo('${k}')"><span class="dot" style="background:${c}"></span><div>${a}<small>${b}</small></div></div>`).join('');
+// the sky's city pulse: three signals that follow the hour; tension rises with the culture district
+const PULSE = [{ n: '도시 긴장', c: [238, 90, 90], f: h => 38 + 10 * Math.sin(h * 0.9) + (h > 17 && h < 22 ? 14 : 0) }, { n: '이동 인구', c: [53, 201, 232], f: h => 20 + 55 * Math.exp(-((h - 8.5) ** 2) / 1.5) + 50 * Math.exp(-((h - 18.5) ** 2) / 2) + 12 * Math.exp(-((h - 13) ** 2) / 3) },
+  { n: '전력 부하', c: [242, 160, 61], f: h => 40 + 45 * Math.exp(-((h - 14.5) ** 2) / 8) + 15 * Math.exp(-((h - 20) ** 2) / 3) }];
+function drawSky(time, hz) {
+  // a band under the top bar, between the side panels; over the sky it floats free, over the city it gets a soft shade
+  const top = 60, bot = top + Math.max(150, Math.min(210, H * 0.22));
+  const x0 = Math.max(300, W * 0.24), x1 = Math.min(W - 330, W * 0.76);
+  g.save();
+  const sh = g.createLinearGradient(0, top - 16, 0, bot + 30);
+  sh.addColorStop(0, 'rgba(6,14,30,0.75)'); sh.addColorStop(0.75, 'rgba(6,14,30,0.55)'); sh.addColorStop(1, 'rgba(6,14,30,0)');
+  g.fillStyle = sh; g.fillRect(x0 - 120, top - 16, x1 - x0 + 170, bot - top + 46);
+  // the AI's line, as broadcast on every screen
+  g.textAlign = 'center'; g.font = '11px "Malgun Gothic"'; g.fillStyle = 'rgba(53,201,232,0.8)'; g.fillText('송출 중인 문구 · 전 구역 412개 화면', (x0 + x1) / 2, top + 12);
+  g.font = 'bold 22px "Malgun Gothic"'; g.fillStyle = 'rgba(230,245,255,0.95)'; g.shadowColor = 'rgba(53,201,232,0.8)'; g.shadowBlur = 12;
+  g.fillText('오늘도 힘찬 하루', (x0 + x1) / 2, top + 38); g.shadowBlur = 0;
+  // the three signals: 24 hours, now marked, the future dimmed
+  const rows = PULSE.length, rh = Math.min(46, (bot - top - 58) / rows);
+  PULSE.forEach((p, i) => {
+    const y0 = top + 54 + i * rh, yb = y0 + rh - 8;
+    g.strokeStyle = 'rgba(53,201,232,0.12)'; g.lineWidth = 1; g.beginPath(); g.moveTo(x0, yb); g.lineTo(x1, yb); g.stroke();
+    for (const past of [true, false]) {
+      g.beginPath();
+      for (let s = 0; s <= 240; s++) { const h = s / 10; if (past ? h > hour : h < hour) continue;
+        const v = p.f(h) + Math.sin(h * 13 + i) * 2.5 + (past ? Math.sin(time / 300 + h * 40) * 0.8 : 0), x = x0 + (x1 - x0) * h / 24, y = yb - (rh - 12) * Math.min(1, v / 100);
+        g.lineTo(x, y); }
+      g.strokeStyle = rgb(p.c, past ? 0.9 : 0.25); g.lineWidth = past ? 1.6 : 1; g.setLineDash(past ? [] : [3, 4]); g.stroke(); g.setLineDash([]);
+    }
+    const nx = x0 + (x1 - x0) * hour / 24, nv = p.f(hour), ny = yb - (rh - 12) * Math.min(1, nv / 100);
+    g.fillStyle = rgb(p.c, 1); g.beginPath(); g.arc(nx, ny, 3, 0, 7); g.fill();
+    g.textAlign = 'right'; g.font = '11px "Malgun Gothic"'; g.fillStyle = 'rgba(196,210,232,0.85)'; g.fillText(p.n, x0 - 10, yb - 4);
+    g.textAlign = 'left'; g.font = '600 15px "Rajdhani","Bahnschrift"'; g.fillStyle = rgb(p.c, 1); g.fillText(String(Math.round(nv)), x1 + 10, yb - 3);
+  });
+  const nx = x0 + (x1 - x0) * hour / 24;
+  g.strokeStyle = 'rgba(230,245,255,0.35)'; g.beginPath(); g.moveTo(nx, top + 50); g.lineTo(nx, bot); g.stroke();
+  g.textAlign = 'center'; g.font = '10px "Malgun Gothic"'; g.fillStyle = 'rgba(159,179,209,0.7)';
+  for (const h of [0, 6, 12, 18, 24]) g.fillText(String(h).padStart(2, '0') + ':00', x0 + (x1 - x0) * h / 24, bot + 2);
+  g.restore(); g.textAlign = 'left';
+}
+function drawTags(near) {
+  // a data tag over each district: ground dot, leader line, name, population and a tension bar
+  if (near >= 0.7) return;
+  const a = 1 - near / 0.7;
+  g.font = 'bold 12px "Malgun Gothic"';
+  const placed = [];
+  // the AI centre first, then the rest; a tag that would cover one already placed climbs above it
+  for (const k of ['A', ...Object.keys(D).filter(k => k !== 'A')]) {
+    const [x, y] = centreOf[k], st = STATE[k], base = proj(x, y, 0), p = proj(x, y, k === 'A' ? 330 : 120);
+    if (p[0] < -100 || p[0] > W + 100) continue;
+    const tc = tensionColor(st.tension), hot = st.tension >= 60, w = Math.max(g.measureText(D[k][0]).width, 64) + 16;
+    const bx = p[0] - w / 2; let by = p[1] - 36;
+    for (let n = 0; n < 6; n++) { const hit = placed.find(r => bx < r[0] + r[2] + 4 && bx + w + 4 > r[0] && by < r[1] + 38 && by + 38 > r[1]); if (!hit) break; by = hit[1] - 40; }
+    placed.push([bx, by, w]);
+    g.strokeStyle = rgb(hot ? tc : [53, 201, 232], 0.7 * a); g.lineWidth = 1; g.beginPath(); g.moveTo(base[0], base[1]); g.lineTo(p[0], by + 34); g.stroke();
+    g.fillStyle = rgb(hot ? tc : [53, 201, 232], a); g.beginPath(); g.arc(base[0], base[1], 2.5, 0, 7); g.fill();
+    g.fillStyle = `rgba(5,14,28,${0.82 * a})`; g.fillRect(bx, by, w, 34);
+    g.fillStyle = rgb(hot ? tc : [53, 201, 232], a); g.fillRect(bx, by, 2, 34);
+    g.fillStyle = `rgba(230,240,255,${a})`; g.textAlign = 'left'; g.font = 'bold 12px "Malgun Gothic"'; g.fillText(D[k][0], bx + 8, by + 14);
+    g.font = '600 12px "Rajdhani","Bahnschrift"'; g.fillStyle = `rgba(159,179,209,${a})`;
+    g.fillText(st.pop ? (st.pop >= 10000 ? (st.pop / 10000).toFixed(1) + '만' : st.pop.toLocaleString()) : '—', bx + 8, by + 28);
+    g.fillStyle = 'rgba(159,179,209,0.25)'; g.fillRect(bx + w - 40, by + 23, 32, 3);
+    g.fillStyle = rgb(tc, a); g.fillRect(bx + w - 40, by + 23, 32 * st.tension / 100, 3);
+  }
+}
+function loop(now) {
+  const dt = Math.min(100, now - (last || now)); last = now;
+  if (speed) { hour = (hour + dt / 1000 * speed / 20) % 24; document.getElementById('time').value = hour; }
+  document.getElementById('clock').textContent = `${String(Math.floor(hour)).padStart(2, '0')}:${String(Math.floor(hour % 1 * 60)).padStart(2, '0')}`;
+  if (cam.goal) { const e = 0.08; cam.tx += (cam.goal.tx - cam.tx) * e; cam.ty += (cam.goal.ty - cam.ty) * e; cam.dist += (cam.goal.dist - cam.dist) * e;
+    if (Math.abs(cam.goal.dist - cam.dist) < 1 && Math.abs(cam.goal.tx - cam.tx) < 1) cam.goal = null; }
+  draw(now);
+  document.getElementById('alerts').style.display = document.getElementById('card').style.display === 'block' ? 'none' : 'block';
+  document.getElementById('zoomV').textContent = `시점 ${Math.round(pitch() * 180 / Math.PI)}° · 거리 ${Math.round(cam.dist)}`;
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

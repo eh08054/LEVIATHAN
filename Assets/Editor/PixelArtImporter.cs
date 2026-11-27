@@ -29,6 +29,15 @@ namespace Sector.EditorTools
                     smooth.npotScale = TextureImporterNPOTScale.None;
                     smooth.alphaIsTransparency = true;
                     smooth.wrapMode = TextureWrapMode.Clamp;
+                    // the 8K city pictures (Tools/Art/city_v9.py): full size so zooming stays sharp, high-quality
+                    // compression (uncompressed they would take ~130 MB each), mipmaps so the whole view stays clean
+                    if (assetPath.StartsWith("Assets/Resources/Macro/"))
+                    {
+                        smooth.maxTextureSize = 8192;
+                        smooth.textureCompression = TextureImporterCompression.CompressedHQ;
+                        smooth.mipmapEnabled = true;
+                        smooth.alphaIsTransparency = false;
+                    }
                     return;
                 }
             if (!assetPath.StartsWith(ArtFolder))

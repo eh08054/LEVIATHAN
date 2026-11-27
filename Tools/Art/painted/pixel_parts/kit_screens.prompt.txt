@@ -1,0 +1,7 @@
+Crisp pixel art game assets for the near-future city SECTOR ALPHA (2071), seen from the same 3/4 top-down camera as the reference image (roofs seen from above, front facades facing us, no side faces, no isometric diamond). Match the reference exactly: same pixel size (each art pixel a square of 4 x 4 image pixels, hard edges, no anti-aliasing, no blur), same palette (white and pale grey, blue-cyan glass, warm light wood accents, thin cyan light lines), same soft light from the upper left. SCALE as in the reference: a person is about 9 art pixels tall, one storey about 10 art pixels. Almost no plants: no balcony planters, no rooftop gardens, no trees unless asked. Screens and signs carry NO text and no letters, only abstract light. No cars of today: vehicles are small rounded driverless capsules.
+
+This is a SPRITE SHEET on a fully transparent background: separate pieces laid out in a tidy grid with wide empty transparent gaps between them, nothing touching, no labels, no text, no frame.
+
+SCREENS AND HOLOGRAMS, all showing only soft abstract light patterns, no text: a free-standing street screen on a post, a wide wall screen for a facade (three sizes), a vertical banner screen, a holographic shop sign floating over a doorway (three shapes), a large round plaza hologram projector with a translucent cyan ring of light above it, a floor projector with a small floating icon.
+
+The reference image fixes the style: match its camera, pixel size, palette, light and level of detail exactly so every piece fits into that city.

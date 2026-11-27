@@ -1,0 +1,257 @@
+<!doctype html>
+<!-- Page mock-ups (2026-11-27, free): the pages opened from the command dock, in the B HUD's language — big type,
+     few words, pictures and icons, details on selection. ?p=policy | citizens | research. The HUD's top row and dock
+     stay; the page sits between them over the darkened city. -->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>LEVIATHAN 페이지 시안</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #050b16; font-family: "Pretendard", "Malgun Gothic", sans-serif; color: #eaf3ff; }
+  .scene { position: absolute; inset: 0; background: url(../painted/city_v8/day.png) center / cover; filter: brightness(.35) saturate(.7) blur(2px); }
+  .num { font-family: "Rajdhani", "Bahnschrift", "Segoe UI", sans-serif; font-weight: 700; }
+  .ico { width: 26px; height: 26px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  /* HUD frame (same as ui_mock ?v=b) */
+  .emblem { position: absolute; left: 22px; top: 18px; width: 96px; height: 96px; }
+  .emblem .core { position: absolute; inset: 14px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #8ff3ff, #1d7fa8 45%, #0a2440 75%); }
+  .emblem .eye { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px; border-radius: 50%; background: #e9fdff; box-shadow: 0 0 16px #fff; }
+  .stage { position: absolute; left: 126px; top: 30px; } .stage .t { font-size: 13px; color: #8fb4d8; letter-spacing: 2px; } .stage .v { font-size: 26px; font-weight: 800; }
+  .clock { position: absolute; left: 50%; top: 16px; transform: translateX(-50%); text-align: center; font-size: 30px; }
+  .res { position: absolute; right: 24px; top: 22px; display: flex; gap: 14px; }
+  .chip { display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; border-radius: 26px; background: rgba(8,20,40,.7); border: 1px solid rgba(120,200,240,.3); }
+  .chip .ic { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; } .chip .n { font-size: 24px; }
+  .dock { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; gap: 14px; align-items: flex-end; }
+  .cmd { width: 92px; text-align: center; } .cmd .hex { position: relative; width: 74px; height: 74px; margin: 0 auto; border-radius: 22px; transform: rotate(45deg); background: #122c4c; border: 2px solid rgba(120,200,240,.45); }
+  .cmd .hex .ico { position: absolute; left: 50%; top: 50%; width: 32px; height: 32px; margin: -16px; transform: rotate(-45deg); color: #c8ecff; }
+  .cmd .lbl { margin-top: 18px; font-size: 15px; font-weight: 700; } .cmd.on .hex { background: #2f74dc; border-color: #bcd8ff; box-shadow: 0 0 20px rgba(76,141,255,.8); }
+
+  /* page area */
+  .page { position: absolute; left: 24px; right: 24px; top: 168px; bottom: 140px; display: flex; gap: 18px; }
+  .ptitle { position: absolute; left: 30px; top: 124px; font-size: 15px; color: #8fb4d8; letter-spacing: 3px; } .ptitle b { color: #eaf3ff; font-size: 26px; letter-spacing: 0; margin-right: 12px; }
+  .glass { background: rgba(8,20,40,.78); border: 1px solid rgba(120,200,240,.25); border-radius: 22px; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 15px; background: rgba(8,20,40,.8); border: 1px solid rgba(120,200,240,.3); }
+  .up { color: #4fd18b; } .down { color: #ee5a5a; } .warn { color: #f2a03d; }
+
+  /* policy */
+  .fields { width: 112px; display: flex; flex-direction: column; gap: 10px; padding: 14px 0; align-items: center; }
+  .field { width: 84px; padding: 10px 0; border-radius: 18px; text-align: center; font-size: 14px; color: #9fc0e0; position: relative; }
+  .field .ico { width: 30px; height: 30px; margin: 0 auto 4px; display: block; } .field.on { background: #2f74dc; color: #fff; box-shadow: 0 0 16px rgba(76,141,255,.6); }
+  .field .dot { position: absolute; right: 10px; top: 8px; width: 9px; height: 9px; border-radius: 50%; background: #35c9e8; }
+  .stagearea { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+  .hero { height: 230px; border-radius: 22px; background: url(field_security.png) center 40% / cover; position: relative; overflow: hidden; }
+  .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(4,10,22,.9), rgba(4,10,22,.1) 60%); }
+  .hero .txt { position: absolute; left: 30px; bottom: 26px; z-index: 1; } .hero .k { font-size: 16px; color: #9feeff; letter-spacing: 3px; } .hero .n { font-size: 46px; font-weight: 800; }
+  .hero .slots { position: absolute; right: 26px; top: 22px; z-index: 1; display: flex; gap: 8px; align-items: center; font-size: 15px; }
+  .slots i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #35c9e8; } .slots i.f { background: #35c9e8; }
+  .choices { flex: 1; display: flex; gap: 16px; }
+  .choice { flex: 1; padding: 22px 26px; display: flex; flex-direction: column; gap: 14px; position: relative; }
+  .choice .tag { font-size: 14px; font-weight: 800; letter-spacing: 2px; padding: 4px 12px; border-radius: 14px; align-self: flex-start; }
+  .tag.ctl { background: rgba(242,160,61,.2); color: #ffc27a; } .tag.gd { background: rgba(53,201,232,.18); color: #8fe6ff; }
+  .choice .name { font-size: 32px; font-weight: 800; } .choice .line { font-size: 17px; color: #b9cfe6; line-height: 1.5; }
+  .effects { display: flex; flex-wrap: wrap; gap: 8px; } .effects .pill { font-size: 16px; }
+  .choice .foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; }
+  .pips { display: flex; gap: 6px; align-items: center; font-size: 14px; color: #9fc0e0; } .pips i { width: 30px; height: 10px; border-radius: 5px; background: rgba(140,180,220,.25); } .pips i.f { background: #35c9e8; }
+  .go { padding: 12px 30px; border-radius: 26px; font-size: 18px; font-weight: 800; background: #2f86ff; box-shadow: 0 0 16px rgba(80,150,255,.6); }
+  .go.off { background: rgba(140,180,220,.2); box-shadow: none; color: #9fc0e0; }
+  .choice.active { border-color: #35c9e8; box-shadow: 0 0 0 2px rgba(53,201,232,.5) inset; }
+  .who { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #9fc0e0; margin-top: 6px; }
+  .who i { width: 46px; height: 46px; border-radius: 50%; background: #0c1e36 center 15% / 170%; border: 2px solid #35c9e8; }
+  .who i.bad { border-color: #ee5a5a; }
+  .forecast { width: 300px; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+  .forecast h4, .side h4 { margin: 0; font-size: 15px; color: #8fb4d8; letter-spacing: 2px; font-weight: 600; }
+  .frow { display: flex; align-items: center; gap: 12px; font-size: 17px; } .frow .ico { width: 26px; height: 26px; } .frow .v { margin-left: auto; font-size: 24px; }
+  .gaugebig { margin-top: auto; padding: 16px; border-radius: 16px; background: rgba(53,201,232,.1); font-size: 15px; color: #b9cfe6; } .gaugebig b { font-size: 26px; color: #eaf3ff; }
+
+  /* citizens */
+  .roster { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .person { position: relative; border-radius: 22px; overflow: hidden; background: #0c1e36 center 12% / cover; border: 2px solid rgba(120,200,240,.25); }
+  .person::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(4,10,22,0) 45%, rgba(4,10,22,.95)); }
+  .person .info { position: absolute; left: 16px; right: 16px; bottom: 14px; z-index: 1; } .person .nm { font-size: 24px; font-weight: 800; } .person .jb { font-size: 14px; color: #a9c6e4; }
+  .person .st { position: absolute; right: 12px; top: 12px; z-index: 1; padding: 4px 12px; border-radius: 14px; font-size: 14px; font-weight: 700; }
+  .st.trust { background: rgba(53,201,232,.85); color: #002230; } .st.doubt { background: rgba(242,160,61,.9); color: #2a1400; } .st.resist { background: rgba(238,90,90,.9); } .st.dep { background: rgba(160,140,255,.9); color: #120a30; } .st.watch { background: rgba(140,160,190,.7); }
+  .person .mood { position: absolute; left: 16px; right: 16px; bottom: 66px; z-index: 1; height: 6px; border-radius: 3px; background: rgba(140,180,220,.25); } .person .mood i { display: block; height: 100%; border-radius: 3px; background: #35c9e8; }
+  .person.sel { border-color: #35c9e8; box-shadow: 0 0 22px rgba(53,201,232,.5); }
+  .side { width: 360px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+  .quote { font-size: 20px; line-height: 1.5; padding: 16px 18px; border-radius: 16px; background: rgba(53,201,232,.1); border-left: 4px solid #35c9e8; }
+  .bars4 .r { display: flex; align-items: center; gap: 10px; font-size: 16px; margin: 6px 0; } .bars4 .r span:first-child { width: 48px; color: #b9cfe6; } .bars4 .b { flex: 1; height: 10px; border-radius: 5px; background: rgba(140,180,220,.2); } .bars4 .b i { display: block; height: 100%; border-radius: 5px; }
+  .btnrow { margin-top: auto; display: flex; gap: 10px; } .btn { flex: 1; text-align: center; padding: 12px; border-radius: 22px; font-size: 16px; font-weight: 700; background: rgba(8,20,40,.8); border: 1px solid rgba(120,200,240,.35); } .btn.pri { background: #2f86ff; border-color: #9cc7ff; }
+
+  /* research */
+  .branches { width: 112px; display: flex; flex-direction: column; gap: 34px; padding: 14px 0; align-items: center; }
+  .branch { width: 84px; height: 84px; border-radius: 50%; background: #0c1e36 center / cover; border: 3px solid rgba(120,200,240,.3); position: relative; }
+  .branch.on { border-color: #35c9e8; box-shadow: 0 0 18px rgba(53,201,232,.7); } .branch span { position: absolute; left: 50%; bottom: -22px; transform: translateX(-50%); font-size: 13px; white-space: nowrap; color: #9fc0e0; }
+  .tree { flex: 1; position: relative; overflow: hidden; }
+  .tree > svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+  .node { position: absolute; width: 96px; text-align: center; transform: translate(-50%, -50%); }
+  .node .c { width: 76px; height: 76px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; background: #0f2846; border: 3px solid rgba(120,200,240,.35); }
+  .node .c .ico { width: 32px; height: 32px; color: #9fc0e0; }
+  .node.done .c { background: #155e7a; border-color: #35c9e8; } .node.done .c .ico { color: #dffaff; }
+  .node.now .c { border-color: #f2c14e; box-shadow: 0 0 20px rgba(242,193,78,.7); } .node.lock .c { opacity: .45; }
+  .node .l { margin-top: 6px; font-size: 15px; font-weight: 700; } .node.lock .l { color: #7f93b3; }
+  .node .ring { position: absolute; left: 50%; top: 0; width: 82px; height: 82px; margin-left: -41px; margin-top: -3px; }
+  /* watch */
+  .feed { flex: 1; position: relative; overflow: hidden; background: #0a1628 url(block_culture_v2.png) center / cover; }
+  .feed .live { position: absolute; left: 20px; top: 18px; padding: 6px 14px; border-radius: 16px; background: rgba(238,90,90,.9); font-weight: 800; font-size: 15px; }
+  .feed .cam { position: absolute; left: 110px; top: 20px; font-size: 17px; text-shadow: 0 2px 6px #000; }
+  .feed .tagp { position: absolute; padding: 4px 10px; border: 2px solid #f2a03d; border-radius: 8px; font-size: 14px; background: rgba(40,20,0,.6); }
+  .feed .tabs { position: absolute; left: 20px; bottom: 18px; display: flex; gap: 8px; }
+  .feed .tabs span { padding: 8px 16px; border-radius: 18px; font-size: 15px; background: rgba(8,20,40,.85); border: 1px solid rgba(120,200,240,.3); }
+  .feed .tabs span.on { background: #2f86ff; }
+  .acard { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 16px; background: rgba(8,20,40,.6); border: 1px solid rgba(120,200,240,.2); }
+  .acard .pic { flex: none; width: 56px; height: 56px; border-radius: 50%; background: #0c1e36 center 15% / 170%; border: 2px solid #f2a03d; }
+  .acard .h { font-size: 17px; font-weight: 700; } .acard .s { font-size: 14px; color: #a9c6e4; }
+  .acard.red .pic { border-color: #ee5a5a; }
+  .fgrid { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-content: start; }
+  .fac { padding: 20px; display: flex; flex-direction: column; gap: 10px; position: relative; min-height: 200px; }
+  .fac .big { width: 64px; height: 64px; border-radius: 18px; display: grid; place-items: center; background: rgba(53,201,232,.15); }
+  .fac .big .ico { width: 34px; height: 34px; color: #8fe6ff; } .fac .nm { font-size: 22px; font-weight: 800; } .fac .ln { font-size: 15px; color: #a9c6e4; }
+  .fac .cost { margin-top: auto; display: flex; justify-content: space-between; align-items: center; font-size: 16px; }
+  .fac.built { border-color: #35c9e8; } .fac .cnt { position: absolute; right: 16px; top: 16px; padding: 4px 12px; border-radius: 14px; background: #35c9e8; color: #002230; font-weight: 800; font-size: 14px; }
+  .fac.lock { opacity: .45; }
+  .grade { width: 300px; padding: 28px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+  .grade .g { width: 170px; height: 170px; border-radius: 50%; display: grid; place-items: center; font-size: 96px; border: 6px solid #35c9e8; color: #8ff3ff; }
+  .rmid { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+  .ichanges { padding: 24px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  .ich { text-align: center; } .ich .ico { width: 34px; height: 34px; color: #8fe6ff; margin: 0 auto; display: block; }
+  .ich .v { font-size: 40px; } .ich .d { font-size: 20px; } .ich .n { font-size: 15px; color: #a9c6e4; }
+  .rrow { flex: 1; display: flex; gap: 16px; } .rbox { flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 12px; }
+  .rbox h4 { margin: 0; font-size: 15px; color: #8fb4d8; letter-spacing: 2px; font-weight: 600; }
+  .gl { display: flex; align-items: center; gap: 12px; font-size: 17px; } .gl .b { flex: 1; height: 10px; border-radius: 5px; background: rgba(140,180,220,.2); } .gl .b i { display: block; height: 100%; border-radius: 5px; background: #35c9e8; }
+  .tl { flex: 1; padding: 26px 30px; display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
+  .tli { display: flex; gap: 18px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid rgba(120,200,240,.1); }
+  .tli .d { width: 80px; font-size: 18px; color: #8fb4d8; } .tli .dot { flex: none; width: 14px; height: 14px; border-radius: 50%; margin-top: 5px; background: #35c9e8; }
+  .tli .t { font-size: 19px; } .tli .s { font-size: 15px; color: #a9c6e4; margin-top: 2px; }
+  .tli.bad .dot { background: #ee5a5a; } .tli.warn .dot { background: #f2a03d; } .tli.good .dot { background: #4fd18b; }
+  .ltabs { display: flex; gap: 8px; margin-bottom: 8px; } .ltabs span { padding: 9px 18px; border-radius: 20px; font-size: 16px; background: rgba(8,20,40,.8); border: 1px solid rgba(120,200,240,.3); } .ltabs span.on { background: #2f86ff; }
+  .label { position: absolute; left: 16px; bottom: 6px; font-size: 12px; color: #6f86a8; }
+</style>
+</head>
+<body>
+<script>
+const P = new URLSearchParams(location.search).get('p') || 'policy';
+const I = {
+  bolt: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>', data: '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>',
+  people: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-4 3.4-6 6.5-6s5.7 2 6.5 6"/><circle cx="17" cy="9" r="2.8"/><path d="M16 14.2c2.7.2 4.6 2 5.3 5.3"/>',
+  smile: '<circle cx="12" cy="12" r="9"/><path d="M8 14c1 1.5 2.4 2.2 4 2.2s3-.7 4-2.2M9 9.5h.01M15 9.5h.01"/>', shield: '<path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z"/>',
+  link: '<path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/>', eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>', gauge: '<path d="M4 18a9 9 0 1 1 16 0"/><path d="m12 14 4-5"/>',
+  doc: '<path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h6"/>', flask: '<path d="M9 2h6M10 2v6L4 19a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3L14 8V2"/><path d="M7 15h10"/>',
+  build: '<path d="M3 21h18M5 21V8l7-5 7 5v13M10 21v-6h4v6"/>', star: '<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/>', list: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  scale: '<path d="M12 3v18M5 21h14M6 7h12M6 7l-3 7a3 3 0 0 0 6 0zM18 7l-3 7a3 3 0 0 0 6 0z"/>', heart: '<path d="M12 20s-8-5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 9c0 6-8 11-8 11z"/>',
+  tool: '<path d="M14 6a4 4 0 0 0 5 5l-9 9-3-3 9-9z"/>', book: '<path d="M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4zM20 4h-6"/><path d="M20 4v14h-6"/>', radio: '<circle cx="12" cy="12" r="2"/><path d="M8 8a6 6 0 0 0 0 8M16 8a6 6 0 0 1 0 8M5 5a10 10 0 0 0 0 14M19 5a10 10 0 0 1 0 14"/>',
+  brain: '<path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 6 1V4a3 3 0 0 0-3 0zM15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-2 5 3 3 0 0 1-6 1"/>',
+  lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+};
+const ico = (k, s = '') => `<svg class="ico" viewBox="0 0 24 24" style="${s}">${I[k]}</svg>`;
+const CMDS = [['gauge', '도시'], ['doc', '정책'], ['flask', '연구'], ['people', '시민'], ['eye', '관찰'], ['build', '시설'], ['star', '보고서'], ['list', '기록']];
+const onCmd = { policy: '정책', citizens: '시민', research: '연구', watch: '관찰', facility: '시설', report: '보고서', log: '기록' }[P];
+let h = `<div class="scene"></div>
+<div class="emblem"><div class="core"></div><div class="eye"></div></div>
+<div class="stage"><div class="t">LEVIATHAN · 섹터 알파</div><div class="v">위임 2단계</div></div>
+<div class="clock num">2071. 3. 14 &nbsp;16:00</div>
+<div class="res"><div class="chip"><span class="ic" style="background:#4a3510">${ico('bolt', 'color:#ffc35a')}</span><span class="n num">100</span></div>
+<div class="chip"><span class="ic" style="background:#103448">${ico('data', 'color:#7fe3ff')}</span><span class="n num">24</span></div>
+<div class="chip"><span class="ic" style="background:#16324a">${ico('people', 'color:#bfe0ff')}</span><span class="n num">10.0만</span></div></div>
+<div class="dock">${CMDS.map(([k, n]) => `<div class="cmd${n === onCmd ? ' on' : ''}"><div class="hex">${ico(k)}</div><div class="lbl">${n}</div></div>`).join('')}</div>`;
+
+if (P === 'policy') {
+  const F = [['shield', '치안', 1], ['scale', '법률', 0], ['heart', '복지', 1], ['tool', '노동', 0], ['book', '교육', 0], ['radio', '미디어', 0], ['build', '도시', 0], ['build', '건설', 0], ['flask', '과학', 0]];
+  h += `<div class="ptitle"><b>정책</b>무엇을 바꿀까</div><div class="page">
+  <div class="fields glass">${F.map(([k, n, on], i) => `<div class="field${i === 0 ? ' on' : ''}">${ico(k)}${n}${on ? '<span class="dot"></span>' : ''}</div>`).join('')}</div>
+  <div class="stagearea">
+    <div class="hero"><div class="txt"><div class="k">분야</div><div class="n">치안</div></div><div class="slots">시행 중 <i class="f"></i><i class="f"></i><i></i></div></div>
+    <div class="choices">
+      <div class="choice glass active"><span class="tag ctl">통제</span><div class="name">순찰 강화</div>
+        <div class="line">거리는 조용해진다. 다들 누가 보고 있다는 걸 안다.</div>
+        <div class="effects"><span class="pill">${ico('shield', 'width:20px;height:20px')}안정 <b class="up">▲▲</b></span><span class="pill">${ico('smile', 'width:20px;height:20px')}행복 <b class="down">▼</b></span><span class="pill">${ico('target', 'width:20px;height:20px')}자율 <b class="down">▼</b></span></div>
+        <div class="who"><span>좋아함</span><i style="background-image:url(face_c08.png)"></i><i style="background-image:url(face_c07.png)"></i><span style="margin-left:14px">싫어함</span><i class="bad" style="background-image:url(face_c05.png)"></i><i class="bad" style="background-image:url(face_c10.png)"></i><i class="bad" style="background-image:url(face_c03.png)"></i></div>
+        <div class="foot"><div class="pips">강도 <i class="f"></i><i class="f"></i><i></i></div><div class="go off">시행 중</div></div></div>
+      <div class="choice glass"><span class="tag gd">유도</span><div class="name">위험 예측</div>
+        <div class="line">갈등이 생길 곳을 미리 계산해, 조명과 순찰을 조용히 옮긴다.</div>
+        <div class="effects"><span class="pill">${ico('shield', 'width:20px;height:20px')}안정 <b class="up">▲▲</b></span><span class="pill">${ico('eye', 'width:20px;height:20px')}실제 자율 <b class="warn">▼</b></span></div>
+        <div class="who"><span>좋아함</span><i style="background-image:url(face_c02.png)"></i><span style="margin-left:14px">싫어함</span><i class="bad" style="background-image:url(face_c03.png)"></i></div>
+        <div class="foot"><div class="pips">${ico('bolt', 'width:18px;height:18px;color:#ffc35a')} 2 / 주</div><div class="go">시행</div></div></div>
+    </div>
+  </div>
+  <div class="forecast glass"><h4>12주 뒤</h4>
+    ${[['smile', '행복', '58', 'down', '▼4'], ['shield', '안정', '79', 'up', '▲8'], ['link', '정합', '58', '', '–'], ['target', '자율 (느끼는)', '61', 'down', '▼5'], ['eye', '자율 (실제)', '38', 'warn', '▼3']].map(([k, n, v, c, d]) => `<div class="frow">${ico(k)}${n}<span class="v num">${v}</span><span class="${c} num" style="width:36px;text-align:right">${d}</span></div>`).join('')}
+    <div class="gaugebig">위임까지<br><b class="num">235 → 248</b></div></div>
+  </div>`;
+} else if (P === 'citizens') {
+  const C = [['c01', '김도윤', '조경사', 'trust', '신뢰', 70], ['c02', '이서아', '배달 노동자', 'dep', '의존', 62], ['c03', '박만수', '전 종군 기자', 'doubt', '의심', 44], ['c04', '최하늘', '구직자', 'watch', '관망', 38], ['c05', '정우진', '상인회장', 'resist', '저항', 30],
+    ['c06', '한소미', '예비 엄마', 'trust', '신뢰', 66], ['c07', '윤재희', '세계연합 감독관', 'watch', '관망', 55], ['c08', '강태오', '경찰', 'dep', '의존', 58], ['c09', '오민지', '교사', 'doubt', '의심', 47], ['c10', '류시온', '거리 음악가', 'watch', '관망', 52]];
+  h += `<div class="ptitle"><b>시민</b>지켜보는 열 사람</div><div class="page">
+  <div class="roster">${C.map(([id, n, j, st, sn, m], i) => `<div class="person${i === 5 ? ' sel' : ''}" style="background-image:url(face_${id}.png)"><span class="st ${st}">${sn}</span><div class="mood"><i style="width:${m}%"></i></div><div class="info"><div class="nm">${n}</div><div class="jb">${j}</div></div></div>`).join('')}</div>
+  <div class="side glass"><h4>한소미 · 35</h4>
+    <div class="quote">“아이가 묻더라. 전쟁이 뭐냐고. 뭐라고 해야 할지 몰랐어.”</div>
+    <h4>마음</h4><div class="bars4">${[['신뢰', 66, '#35c9e8'], ['의존', 40, '#a08cff'], ['의심', 22, '#f2a03d'], ['저항', 8, '#ee5a5a']].map(([n, v, c]) => `<div class="r"><span>${n}</span><div class="b"><i style="width:${v}%;background:${c}"></i></div><span class="num">${v}</span></div>`).join('')}</div>
+    <h4>요즘</h4><div style="font-size:17px;color:#b9cfe6;line-height:1.6">맞춤 지원을 좋아한다 · 배급제를 싫어한다<br>이웃: 이서아(친함), 정우진(어색함)</div>
+    <div class="btnrow"><div class="btn">이야기</div><div class="btn pri">카메라로</div></div></div>
+  </div>`;
+} else if (P === 'watch') {
+  h += `<div class="ptitle"><b>관찰</b>지금 이 도시에서</div><div class="page">
+  <div class="feed glass"><span class="live">● LIVE</span><span class="cam">CAM-01 · 문화·여가</span>
+    <span class="tagp" style="left:46%;top:52%">모임 · 14명</span><span class="tagp" style="left:63%;top:62%;border-color:#35c9e8;background:rgba(0,30,40,.6)">류시온</span>
+    <div class="tabs"><span>도시 전체</span><span class="on">문화·여가</span><span>상업</span><span>주거</span><span>교육</span><span>…</span></div></div>
+  <div class="side glass"><h4>이상 징후 · 3</h4>
+    <div class="acard red"><div class="pic" style="background-image:url(event_crowd.png);background-size:cover"></div><div><div class="h">광장에 사람이 모인다</div><div class="s">문화·여가 · 긴장 82</div></div></div>
+    <div class="acard"><div class="pic" style="background-image:url(face_c05.png)"></div><div><div class="h">정우진이 상인들을 불렀다</div><div class="s">상업 · 수군거림</div></div></div>
+    <div class="acard"><div class="pic" style="background-image:url(face_c04.png)"></div><div><div class="h">최하늘이 3일째 집에 있다</div><div class="s">주거 · 불만</div></div></div>
+    <h4 style="margin-top:8px">사회 동향</h4>
+    <div class="gl">상인 <div class="b"><i style="width:42%;background:#f2a03d"></i></div><span class="num">42</span></div>
+    <div class="gl">노동자 <div class="b"><i style="width:58%"></i></div><span class="num">58</span></div>
+    <div class="gl">청년 <div class="b"><i style="width:35%;background:#ee5a5a"></i></div><span class="num">35</span></div>
+    <div class="btnrow"><div class="btn">분석 · 정보 5</div><div class="btn pri">대응</div></div></div>
+  </div>`;
+} else if (P === 'facility') {
+  const FA = [['bolt', '발전소', '에너지 +6/주', '60', 1], ['data', '저장소', '에너지 한도 +100', '30', 0], ['eye', '센서망', '정보 +3/주 · 관찰 +2', '30', 1], ['heart', '공원', '행복 ▲ 안정 ▲', '30', 2],
+    ['smile', '상담소', '안정 ▲▲', '40', 0], ['book', '학습 센터', '정합 ▲', '35', 0], ['people', '돌봄 센터', '행복 ▲', '40', 0], ['radio', '홍보 전광판', '느끼는 자율 ▲', '35', -1]];
+  h += `<div class="ptitle"><b>시설</b>도시에 무엇을 더할까</div><div class="page">
+  <div class="fgrid">${FA.map(([k, n, l, c, b]) => `<div class="fac glass${b > 0 ? ' built' : ''}${b < 0 ? ' lock' : ''}">${b > 0 ? `<span class="cnt">${b}곳</span>` : ''}<div class="big">${ico(b < 0 ? 'lock' : k)}</div><div class="nm">${n}</div><div class="ln">${l}</div>
+    <div class="cost"><span>${ico('bolt', 'width:18px;height:18px;color:#ffc35a;vertical-align:-3px')} <b class="num" style="font-size:20px">${c}</b></span>${b < 0 ? '<span style="color:#9fc0e0;font-size:14px">연구 필요</span>' : '<div class="go" style="padding:8px 22px;font-size:16px">건설</div>'}</div></div>`).join('')}</div>
+  <div class="side glass"><h4>부지</h4><div style="font-size:30px;font-weight:800"><span class="num">5</span> / 22</div>
+    <div class="gl">에너지 <div class="b"><i style="width:60%;background:#ffc35a"></i></div><span class="num">+6</span></div>
+    <div class="gl">유지비 <div class="b"><i style="width:30%;background:#ee5a5a"></i></div><span class="num">-4</span></div>
+    <h4>어디에 지을까</h4><div style="font-size:17px;color:#b9cfe6;line-height:1.6">공원은 주거·문화 구역에서 1.5배.<br>지금 긴장이 높은 곳: 문화·여가</div></div>
+  </div>`;
+} else if (P === 'report') {
+  h += `<div class="ptitle"><b>보고서</b>2071년 3월 결산</div><div class="page">
+  <div class="grade glass"><div class="g num">B</div><div style="font-size:24px;font-weight:800">무난한 한 달</div><div style="font-size:16px;color:#a9c6e4">위임 기준을 넘었다 · 2 / 4개월</div>
+    <div class="btnrow" style="width:100%"><div class="btn pri">다음 달로</div></div></div>
+  <div class="rmid"><div class="ichanges glass">${[['smile', '행복', 62, '▲3', 'up'], ['shield', '안정', 71, '▲5', 'up'], ['link', '정합', 58, '▲1', 'up'], ['target', '느끼는 자율', 66, '▼2', 'down'], ['eye', '실제 자율', 41, '▼4', 'warn']].map(([k, n, v, d, c]) => `<div class="ich">${ico(k)}<div class="v num">${v}</div><div class="d num ${c}">${d}</div><div class="n">${n}</div></div>`).join('')}</div>
+    <div class="rrow"><div class="rbox glass"><h4>집단</h4>${[['상인', 42, '▼6'], ['노동자', 58, '▲2'], ['청년', 35, '▼3'], ['노인', 64, '▲4'], ['가족', 60, '–']].map(([n, v, d]) => `<div class="gl"><span style="width:60px">${n}</span><div class="b"><i style="width:${v}%"></i></div><span class="num" style="width:34px">${v}</span><span class="num" style="width:34px">${d}</span></div>`).join('')}</div>
+      <div class="rbox glass"><h4>이번 달 일</h4><div class="tli warn" style="border:0;padding:4px 0"><span class="dot"></span><div><div class="t">상인 집회 · 협상으로 해산</div></div></div>
+        <div class="tli good" style="border:0;padding:4px 0"><span class="dot"></span><div><div class="t">연구 완료 · 감정 읽기</div></div></div>
+        <div class="tli" style="border:0;padding:4px 0"><span class="dot"></span><div><div class="t">인구 +1,240 · 10.0만</div></div></div></div></div></div>
+  </div>`;
+} else if (P === 'log') {
+  const LG = [['3.14', '광장에 사람이 모였다', '문화·여가 · 긴장 82', 'bad'], ['3.12', '순찰 강화 강도를 2로', '치안 정책', ''], ['3.09', '연구 완료 · 감정 읽기', '이제 시민의 기분을 미리 안다', 'good'], ['3.05', '박만수가 기사를 쓰기 시작했다', '시민 · 의심', 'warn'],
+    ['3.01', '2월 결산 · B', '위임 기준을 넘었다', 'good'], ['2.26', '게이트 앞 대기열 예보', '준비 40%', 'warn'], ['2.20', '배급제를 끝냈다', '복지 정책', '']];
+  h += `<div class="ptitle"><b>기록</b>리바이어던이 한 일</div><div class="page">
+  <div class="tl glass"><div class="ltabs"><span class="on">운영</span><span>목표</span><span>기밀 문서</span></div>${LG.map(([d, t, s, c]) => `<div class="tli ${c}"><span class="d num">${d}</span><span class="dot"></span><div><div class="t">${t}</div><div class="s">${s}</div></div></div>`).join('')}</div>
+  <div class="side glass"><h4>이번 분기 목표</h4><div style="font-size:24px;font-weight:800">불만을 소리 없이</div><div style="font-size:16px;color:#a9c6e4">모임 없이 한 달 버티기</div>
+    <div class="gl"><div class="b"><i style="width:70%;background:#f2c14e"></i></div><span class="num">21 / 30일</span></div>
+    <h4>기밀 문서</h4><div style="font-size:18px">3 / 12 열람</div></div>
+  </div>`;
+} else {
+  const N = [[0.10, 0.5, 'brain', '감정 읽기', 'done'], [0.30, 0.3, 'eye', '시선 설계', 'done'], [0.30, 0.7, 'radio', '분위기 조율', 'done'], [0.50, 0.3, 'link', '습관 형성', 'now'], [0.50, 0.7, 'heart', '위로 알고리즘', ''],
+    [0.70, 0.2, 'target', '선택 설계', 'lock'], [0.70, 0.5, 'smile', '행복 기준', 'lock'], [0.90, 0.35, 'brain', '집단 정서', 'lock'], [0.90, 0.7, 'lock', '?', 'lock']];
+  const L = [[0, 1], [0, 2], [1, 3], [2, 4], [3, 5], [3, 6], [4, 6], [5, 7], [6, 8]];
+  h += `<div class="ptitle"><b>연구</b>사람의 일을 하나씩 맡는다</div><div class="page">
+  <div class="branches glass">${[['branch_psychology.png', '심리', 1], ['', '기술', 0], ['', '교육', 0], ['', '생명', 0]].map(([img, n, on]) => `<div class="branch${on ? ' on' : ''}" style="${img ? `background-image:url(${img})` : ''}"><span>${n}</span></div>`).join('')}</div>
+  <div class="tree glass" id="tree"><svg id="links"></svg>${N.map(([x, y, k, n, s]) => `<div class="node ${s}" style="left:${x * 100}%;top:${y * 100}%"><div class="c">${ico(k)}</div><div class="l">${n}</div>${s === 'now' ? '<svg class="ring" viewBox="0 0 82 82"><circle cx="41" cy="41" r="38" fill="none" stroke="#f2c14e" stroke-width="5" stroke-dasharray="143 239" stroke-linecap="round" transform="rotate(-90 41 41)"/></svg>' : ''}</div>`).join('')}</div>
+  <div class="side glass"><h4>연구 중 · 3일 남음</h4><div style="font-size:30px;font-weight:800">습관 형성</div>
+    <div class="quote" style="font-size:17px">사람이 매일 같은 시간에 같은 일을 하도록. 그들은 그것을 ‘루틴’이라 부르며 좋아한다.</div>
+    <h4>맡게 되는 일</h4><div style="font-size:20px">아침 일정 정하기</div>
+    <h4>열리는 것</h4><div class="effects"><span class="pill">${ico('doc', 'width:20px;height:20px')}정책: 맞춤 학습</span><span class="pill">${ico('smile', 'width:20px;height:20px')}행복 <b class="up">▲</b></span></div>
+    <div class="btnrow"><div class="btn pri">계속 연구</div></div></div>
+  </div>`;
+  setTimeout(() => { const t = document.getElementById('tree').getBoundingClientRect(), s = document.getElementById('links');
+    s.innerHTML = L.map(([a, b]) => { const A = N[a], B = N[b], x1 = A[0] * t.width + 40, y1 = A[1] * t.height, x2 = B[0] * t.width - 40, y2 = B[1] * t.height, mx = (x1 + x2) / 2;
+      const done = A[4] === 'done' && B[4] !== 'lock'; return `<path d="M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}" fill="none" stroke="${done ? '#35c9e8' : 'rgba(140,180,220,.3)'}" stroke-width="${done ? 3 : 2}"/>`; }).join(''); }, 0);
+}
+h += `<div class="label">페이지 시안 · ${{ policy: '정책', citizens: '시민', research: '연구', watch: '관찰', facility: '시설', report: '보고서', log: '기록' }[P]}</div>`;
+document.body.innerHTML = h;
+</script>
+</body>
+</html>

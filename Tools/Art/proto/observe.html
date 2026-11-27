@@ -1,0 +1,377 @@
+<!doctype html>
+<!-- Observation prototype (2026-11-26, free): the residential block painting with the people, light and signal
+     layers drawn by code, so policies and indices can be switched on and off to see the street change.
+     Open this file in a browser (it loads block_home_clean.png, sprites/, drone.png, pod.png next to it).
+     Background: block_home_clean.png (taller housing, people and vehicles removed). -->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>LEVIATHAN 관찰 시험: 주거 블록</title>
+<style>
+  body { margin: 0; background: #101c32; color: #e6eefc; font: 14px/1.5 "Pretendard", "Malgun Gothic", sans-serif; display: flex; }
+  #wrap { flex: 1; display: flex; align-items: center; justify-content: center; height: 100vh; }
+  canvas { image-rendering: pixelated; max-width: 100%; max-height: 100vh; }
+  #panel { width: 280px; padding: 16px; background: #192b46; height: 100vh; box-sizing: border-box; overflow-y: auto; }
+  h2 { font-size: 15px; margin: 16px 0 8px; color: #35c9e8; }
+  label { display: block; margin: 4px 0; cursor: pointer; }
+  input[type=range] { width: 100%; }
+  .val { color: #9fb3d1; font-size: 12px; }
+  #note { font-size: 12px; color: #9fb3d1; margin-top: 16px; }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c" width="1536" height="1024"></canvas></div>
+<div id="panel">
+  <h2>블록</h2>
+  <select id="block" style="width:100%;padding:4px">
+    <option value="home">주거</option><option value="shop">상업</option><option value="culture">문화·여가</option>
+    <option value="edu">교육</option><option value="admin">관리 (AI 센터)</option><option value="research">연구·개발</option>
+    <option value="energy">에너지·발전</option><option value="logistics">물류·산업</option><option value="medical">의료·생명</option>
+    <option value="security">치안·보안</option><option value="site">공사 부지</option>
+  </select>
+  <h2>정책 (통제)</h2>
+  <label><input type="checkbox" id="patrol"> 순찰 강화</label>
+  <label><input type="checkbox" id="assembly"> 집회 신고제</label>
+  <label><input type="checkbox" id="ration"> 배급제</label>
+  <label><input type="checkbox" id="hours"> 영업 시간 규제 (22시 소등)</label>
+  <h2>정책 (유도)</h2>
+  <label><input type="checkbox" id="curation"> 큐레이션</label>
+  <label><input type="checkbox" id="flow"> 동선 설계</label>
+  <h2>시각 <span class="val" id="timeV"></span></h2>
+  <input type="range" id="time" min="0" max="24" step="0.25" value="14">
+  <h2>행복 지수 <span class="val" id="happyV"></span></h2>
+  <input type="range" id="happy" min="0" max="100" value="55">
+  <h2>실질 자율성 <span class="val" id="autoV"></span></h2>
+  <input type="range" id="auto" min="0" max="100" value="80">
+  <h2>긴장 단계 <span class="val" id="tensV"></span></h2>
+  <input type="range" id="tens" min="0" max="4" step="1" value="0">
+  <div id="note">배경은 사람과 차를 지운 그림(block_home_clean)입니다. 사람·드론·포드·줄·불빛·화면 문구는 모두 코드가 그립니다. 주소 뒤에 ?time=22&amp;patrol=1&amp;tens=4 처럼 상태를 줄 수 있습니다.</div>
+</div>
+<script src="blocks.js"></script>
+<script>
+const cv = document.getElementById('c'), main = cv.getContext('2d');
+let g = main;
+const bcv = document.createElement('canvas'); bcv.width = 1536; bcv.height = 1024;
+const bctx = bcv.getContext('2d');
+main.imageSmoothingEnabled = false; bctx.imageSmoothingEnabled = false;
+const $ = id => document.getElementById(id);
+const S = { patrol: false, assembly: false, ration: false, hours: false, curation: false, flow: false,
+            time: 14, happy: 55, auto: 80, tens: 0 };
+const STAGES = ['잠잠', '불만', '수군거림', '모임', '계기'];
+for (const k of ['patrol', 'assembly', 'ration', 'hours', 'curation', 'flow'])
+  $(k).onchange = e => { S[k] = e.target.checked; };
+for (const k of ['time', 'happy', 'auto', 'tens'])
+  $(k).oninput = e => { S[k] = +e.target.value; };
+
+// ---------- art
+const img = src => { const i = new Image(); i.src = src; return i; };
+const BG = {}, NIGHT = {};   // pictures from blocks.js; blocks without a night picture are shaded by code
+for (const [k, [day, night]] of Object.entries(BLOCK_PICTURES)) { BG[k] = img(day); if (night) NIGHT[k] = img(night); }
+let block = 'home';
+document.getElementById('block').onchange = e => setBlock(e.target.value);
+// ?patrol=1&time=22&tens=4 ... sets the state from the address (for screenshots)
+for (const [k, v] of new URLSearchParams(location.search)) if (k === 'block') { block = v; $('block').value = v; } else if (k in S) {
+  S[k] = typeof S[k] === 'boolean' ? v === '1' : +v;
+  if (typeof S[k] === 'boolean') $(k).checked = S[k]; else $(k).value = S[k];
+}
+
+const SHOWGRID = new URLSearchParams(location.search).get('grid') === '1';
+const bg = BG.home, droneImg = img('drone.png'), podImg = img('pod.png');
+const IDS = ['c01','c02','c03','c04','c05','c06','c07','c08','c09','c10','s1','s2','s3','s4','s5','s6'];
+const SPR = {};
+for (const id of IDS) for (const d of ['front','right','back']) for (let f = 0; f < 4; f++)
+  SPR[`${id}_${d}${f}`] = img(`sprites/${id}_${d}${f}.png`);
+const SCALE = 0.6;   // sprites are 62 px tall; people in the painting are about 36
+
+// ---------- places in each painting (image pixels)
+// walk: rectangles people may stand in; solid: rectangles inside them they may not cross (water, trees,
+// planters, building corners). Plaza people find their way on a 16 px grid built from these, so they never cross
+// water or walk through walls. front / far: the y of the two walking lines on each pavement (clear of planters).
+// Every block shares the front pavement (y 716-792) with its planters, so plaza people can come out to it.
+let CFG = BLOCKS.home;
+const LANES_DEFAULT = [826, 866];
+let LANES = LANES_DEFAULT;                                         // pod lanes (the same road in every block)
+const POLES = [[245, 700], [480, 700], [660, 700], [990, 700], [1215, 700], [1505, 700], [372, 900], [736, 900], [940, 900], [1270, 900]];
+const CELL = 16, GW = 96, GH = 64;
+const grid = new Uint8Array(GW * GH);
+let walkCells = [];
+function buildGrid() {
+  grid.fill(0); walkCells = [];
+  const inR = (x, y, r) => x >= r[0] && x <= r[2] && y >= r[1] && y <= r[3];
+  for (let gy = 0; gy < GH; gy++) for (let gx = 0; gx < GW; gx++) {
+    const x = gx * CELL + CELL / 2, y = gy * CELL + CELL / 2;
+    if (CFG.walk.some(r => inR(x, y, r)) && !CFG.solid.some(r => inR(x, y, [r[0] - 6, r[1] - 6, r[2] + 6, r[3] + 6]))) {
+      grid[gy * GW + gx] = 1; walkCells.push(gy * GW + gx);
+    }
+  }
+}
+const cellOf = (x, y) => Math.max(0, Math.min(GH - 1, Math.floor(y / CELL))) * GW + Math.max(0, Math.min(GW - 1, Math.floor(x / CELL)));
+function nearestWalk(x, y) {
+  let best = walkCells[0], bd = 1e9;
+  for (const c of walkCells) {
+    const cx = (c % GW) * CELL + 8, cy = Math.floor(c / GW) * CELL + 8, d = (cx - x) ** 2 + (cy - y) ** 2;
+    if (d < bd) { bd = d; best = c; }
+  }
+  return best;
+}
+function findPath(x0, y0, x1, y1) {
+  // breadth-first search on the grid (8 directions, no corner cutting); cell centres are the waypoints
+  let a = cellOf(x0, y0), b = cellOf(x1, y1);
+  if (!grid[a]) a = nearestWalk(x0, y0);
+  if (!grid[b]) b = nearestWalk(x1, y1);
+  const prev = new Int32Array(GW * GH).fill(-1), q = [a];
+  prev[a] = a;
+  for (let i = 0; i < q.length && prev[b] < 0; i++) {
+    const c = q[i], cx = c % GW, cy = (c - cx) / GW;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+      const nx = cx + dx, ny = cy + dy;
+      if (nx < 0 || ny < 0 || nx >= GW || ny >= GH) continue;
+      const n = ny * GW + nx;
+      if (!grid[n] || prev[n] >= 0) continue;
+      if (dx && dy && (!grid[cy * GW + nx] || !grid[ny * GW + cx])) continue;
+      prev[n] = c; q.push(n);
+    }
+  }
+  if (prev[b] < 0) return [];
+  const path = [];
+  for (let c = b; c !== a; c = prev[c]) path.push([(c % GW) * CELL + 8 + rnd(-3, 3), Math.floor(c / GW) * CELL + 8 + rnd(-3, 3)]);
+  return path.reverse();
+}
+function randomSpot() {
+  const c = pick(walkCells);
+  return [(c % GW) * CELL + 8 + rnd(-4, 4), Math.floor(c / GW) * CELL + 8 + rnd(-4, 4)];
+}
+function setBlock(b) {
+  block = b; CFG = BLOCKS[b] || BLOCKS.home; LANES = CFG.lanes || LANES_DEFAULT; buildGrid();
+  for (const p of people) p.reset(true);
+}
+
+// ---------- people
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+class Person {
+  constructor(kind) {
+    this.id = pick(IDS); this.kind = kind; this.phase = Math.random() * 4; this.say = null; this.sayT = 0;
+    this.speed = rnd(28, 46); this.lane = Math.random(); this.reset(true);
+  }
+  reset(first) {
+    if (this.kind === 'walker') {
+      this.far = Math.random() < 0.4;
+      this.dir = Math.random() < 0.5 ? 1 : -1;
+      this.x = first ? rnd(0, 1536) : (this.dir > 0 ? -20 : 1556);
+    } else if (this.kind === 'plaza') {
+      [this.x, this.y] = randomSpot(); this.path = [];
+    }
+    this.idle = 0;
+  }
+  goTo(x, y) { this.path = findPath(this.x, this.y, x, y); }
+}
+const people = [];
+for (let i = 0; i < 34; i++) people.push(new Person('walker'));
+for (let i = 0; i < 22; i++) people.push(new Person('plaza'));
+const queue = [];   // people standing in the ration queue
+for (let i = 0; i < 16; i++) queue.push(new Person('queue'));
+const gather = [];  // a group gathering in the plaza (tension)
+for (let i = 0; i < 18; i++) gather.push(new Person('gather'));
+let disperse = 0;   // seconds left of a dispersal by drones
+
+// ---------- drones and pods
+const drones = [];
+for (let i = 0; i < 9; i++) drones.push({ x: rnd(0, 1536), y: rnd(120, 360), vx: rnd(30, 60) * (Math.random() < .5 ? 1 : -1), tx: null, ty: null });
+const pods = [];
+for (let i = 0; i < 6; i++) pods.push({ x: rnd(0, 1536), lane: i % 2, v: rnd(70, 110) });
+
+// ---------- lines people say
+const SAY = {
+  happy: ['오늘 날씨 좋다', '여기 커피 맛있어', '요즘 살 만해', '산책 나왔어요'],
+  sad: ['...', '피곤하다', '또 줄이네', '언제까지 이럴까'],
+  whisper: ['들었어?', '쉿', '그 얘기 진짜야?', '조용히 말해'],
+  crowd: ['모이자!', '왜 우리만?', '설명해라!'],
+  curation: ['그거 봤어?', '그거 봤어?', '그거 봤어?'],
+  chosen: ['내가 고른 거야', '딱 내 취향이야'],
+};
+function speak(p, list) { p.say = pick(list); p.sayT = rnd(2, 3.5); }
+
+// ---------- update
+let t0 = performance.now(), clock = 0, frameT = 0;
+function update(dt) {
+  clock += dt; frameT += dt;
+  const auto = S.auto / 100, tens = S.tens;
+  const fast = S.patrol ? 1.35 : 1, night = S.time < 6 || S.time >= 21;
+  const lockstep = 1 - auto;                       // low real autonomy: same lanes, same pace, same step
+  for (const p of people) {
+    let sp = p.speed * fast;
+    sp = sp * auto + 38 * fast * lockstep;          // speeds converge
+    if (p.kind === 'walker') {
+      // two walking lines per pavement (between the planters); with low autonomy everyone keeps to the same
+      // one, with flow design each direction has its own line
+      const ys = p.far ? CFG.far : CFG.front;
+      const side = S.flow ? (p.dir > 0 ? 0 : 1) : (p.lane < 0.5 ? 0 : 1);
+      const jitter = ((p.lane * 2) % 1 - 0.5) * 8 * auto;
+      p.y = (lockstep > 0.7 && !S.flow ? ys[1] : ys[side]) + jitter;
+      if (p.idle > 0) { p.idle -= dt; }
+      else {
+        p.x += p.dir * sp * dt; p.dist = (p.dist || 0) + sp * dt;
+        // with high autonomy people stop now and then (less when patrolled)
+        if (Math.random() < dt * 0.06 * auto * (S.patrol ? 0.3 : 1)) p.idle = rnd(1, 4);
+      }
+      if (p.x < -30 || p.x > 1566) p.reset(false);
+    } else {
+      // plaza: walk a found path to a random spot, linger (longer when happy, shorter when patrolled), repeat;
+      // curation sends people to stand by the screen
+      if (p.idle > 0) p.idle -= dt;
+      else if (!p.path.length) {
+        if (S.curation && Math.random() < 0.8) p.goTo(CFG.watch[0] + rnd(-90, 90), CFG.watch[1] - rnd(0, 30));
+        else p.goTo(...randomSpot());
+        p.idle = rnd(0.5, 4) * (0.4 + S.happy / 60) * (S.patrol ? 0.4 : 1);
+      } else {
+        const [tx, ty] = p.path[0], dx = tx - p.x, dy = ty - p.y, d = Math.hypot(dx, dy);
+        if (d < 3) p.path.shift();
+        else { p.x += dx / d * sp * 0.7 * dt; p.y += dy / d * sp * 0.7 * dt; p.dir = dx < 0 ? -1 : 1; p.vx = dx / d; p.vy = dy / d; p.dist = (p.dist || 0) + sp * 0.7 * dt; }
+      }
+    }
+    // speech
+    if (p.sayT > 0) p.sayT -= dt;
+    else if (Math.random() < dt * 0.05) {
+      if (S.curation) speak(p, SAY.curation);
+      else if (tens >= 2 && Math.random() < 0.5) speak(p, SAY.whisper);
+      else if (S.happy > 60) speak(p, Math.random() < 0.3 && S.auto < 40 ? SAY.chosen : SAY.happy);
+      else if (S.happy < 35) speak(p, SAY.sad);
+    }
+  }
+  // ration queue: people stand in line, the line shuffles forward
+  for (let i = 0; CFG.queue && i < queue.length; i++) {
+    const q = queue[i];
+    q.x = CFG.queue[0] + i * 15 + Math.sin(clock * 0.7 + i) * 1.5; q.y = CFG.queue[1] + (i % 2) * 3;
+    if (q.sayT > 0) q.sayT -= dt; else if (Math.random() < dt * 0.02) speak(q, S.happy < 45 ? SAY.sad : ['언제 받지?', '오늘 메뉴 뭐래']);
+  }
+  // gathering by tension stage; the assembly policy sends drones that break it up
+  const want = tens >= 4 ? 18 : tens >= 3 ? 12 : tens >= 2 ? 6 : 0;
+  if (S.assembly && want >= 6 && disperse <= 0 && Math.random() < dt * 0.25) disperse = 6;
+  if (disperse > 0) disperse -= dt;
+  gather.forEach((p, i) => {
+    p.active = i < want;
+    const ang = i * 2.4, rad = 14 + Math.sqrt(i) * 16 + (disperse > 0 ? (6 - disperse) * 60 : 0);
+    let gx = CFG.gather[0] + Math.cos(ang) * rad, gy = CFG.gather[1] + Math.sin(ang) * rad * 0.45;
+    if (disperse <= 0 && !grid[cellOf(gx, gy)]) { const c = nearestWalk(gx, gy); gx = (c % GW) * CELL + 8; gy = Math.floor(c / GW) * CELL + 8; }
+    const mx = (gx - p.x) * Math.min(1, dt * 1.5), my = (gy - p.y) * Math.min(1, dt * 1.5);
+    p.x += mx; p.y += my; p.dist = (p.dist || 0) + Math.hypot(mx, my); p.vx = mx; p.vy = my; p.dir = mx < 0 ? -1 : 1;
+    if (p.sayT > 0) p.sayT -= dt;
+    else if (p.active && Math.random() < dt * 0.12) speak(p, tens >= 4 ? SAY.crowd : SAY.whisper);
+  });
+  // drones: a few at rest; patrol adds more; dispersal sends them to the group
+  const nd = S.patrol ? 9 : 3;
+  drones.forEach((d, i) => {
+    d.on = i < nd || disperse > 0;
+    if (disperse > 0) { d.tx = CFG.gather[0] + Math.cos(i) * 80; d.ty = CFG.gather[1] - 140 + Math.sin(i) * 20; }
+    else { d.tx = null; }
+    if (d.tx != null) { d.x += (d.tx - d.x) * dt * 1.5; d.y += (d.ty - d.y) * dt * 1.5; }
+    else { d.x += d.vx * dt; if (d.x < -40) d.x = 1576; if (d.x > 1576) d.x = -40; }
+  });
+  pods.forEach(p => { p.x += p.v * (p.lane ? -1 : 1) * dt * (night ? 0.6 : 1); if (p.x > 1600) p.x = -80; if (p.x < -80) p.x = 1600; });
+}
+
+// ---------- draw
+let bubbles = [];
+function sprite(p, dir, moving) {
+  const f = moving ? (S.auto < 30 ? Math.floor(frameT * 6) % 4 : Math.floor((p.dist || 0) / 7 + p.phase) % 4) : 0;
+  const im = SPR[`${p.id}_${dir}${f}`];
+  if (!im || !im.complete) return;
+  const w = im.width * SCALE, h = im.height * SCALE;
+  g.fillStyle = 'rgba(10,20,40,0.28)';
+  g.beginPath(); g.ellipse(p.x, p.y, w * 0.38, 3, 0, 0, 7); g.fill();
+  if (dir === 'right' && p.dir < 0) { g.save(); g.translate(p.x, 0); g.scale(-1, 1); g.drawImage(im, -w / 2, p.y - h, w, h); g.restore(); }
+  else g.drawImage(im, p.x - w / 2, p.y - h, w, h);
+  if (p.sayT > 0 && p.say) bubbles.push([p.x, p.y - h - 6, p.say]);
+}
+function bubble(x, y, text) {
+  g.font = 'bold 15px "Malgun Gothic", sans-serif';
+  const w = g.measureText(text).width + 14;
+  g.fillStyle = 'rgba(255,255,255,0.92)'; g.strokeStyle = '#4c8dff'; g.lineWidth = 2;
+  g.beginPath(); g.roundRect(x - w / 2, y - 24, w, 22, 6); g.fill(); g.stroke();
+  g.fillStyle = '#101c32'; g.fillText(text, x - w / 2 + 7, y - 8);
+}
+function screenText() {
+  if (S.tens >= 4) return S.assembly ? '집회는 사전 신고 대상입니다' : '시민 여러분, 진정하세요';
+  if (S.curation) return '오늘의 추천: 모두가 보는 그 영상';
+  if (S.ration) return '배급 시간 14:00 · 질서를 지켜 주세요';
+  if (S.patrol) return '안전한 거리, 드론이 지켜봅니다';
+  if (S.hours && (S.time >= 21 || S.time < 6)) return '22시 이후 영업이 종료됩니다';
+  return '오늘도 힘찬 하루';
+}
+function draw() {
+  g = bctx;
+  const h = S.time, dark = h < 5 || h >= 21 ? 0.62 : h < 7 ? 0.62 * (7 - h) / 2 : h >= 18 ? 0.62 * (h - 18) / 3 : 0;
+  g.drawImage(BG[block], 0, 0, 1536, 1024);
+  const nightImg = NIGHT[block];
+  if (nightImg && nightImg.complete && dark > 0) {
+    // a painted night: fade it in; closed shops are darkened over their lit fronts
+    g.globalAlpha = Math.min(1, dark / 0.62); g.drawImage(nightImg, 0, 0, 1536, 1024); g.globalAlpha = 1;
+    if (CFG.shops && S.hours && (h >= 22 || h < 6)) {
+      g.fillStyle = 'rgba(10,16,36,0.78)';
+      for (const [x0, y0, x1, y1] of CFG.shops) g.fillRect(x0, y0, x1 - x0, y1 - y0);
+    }
+  } else if (dark > 0) {
+    g.fillStyle = `rgba(14,24,60,${dark})`; g.fillRect(0, 0, 1536, 1024);
+    const closed = S.hours && (h >= 22 || h < 6);
+    g.globalCompositeOperation = 'lighter';
+    if (!closed && CFG.shops) for (const [x0, y0, x1, y1] of CFG.shops) { g.fillStyle = `rgba(255,190,110,${dark * 0.45})`; g.fillRect(x0, y0, x1 - x0, y1 - y0); }
+    for (const [x, y] of POLES) {
+      const gr = g.createRadialGradient(x, y, 2, x, y + 20, 70);
+      gr.addColorStop(0, `rgba(120,220,255,${dark * 0.6})`); gr.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = gr; g.fillRect(x - 70, y - 50, 140, 140);
+    }
+    g.globalCompositeOperation = 'source-over';
+  }
+  // the street screen with the AI's line (its place is known only in the residential painting so far)
+  if (CFG.screen) {
+  g.fillStyle = '#bfefff'; g.fillRect(CFG.screen[0], CFG.screen[1], CFG.screen[2], CFG.screen[3]);
+  g.fillStyle = '#0d3a5c'; g.font = 'bold 15px "Malgun Gothic", sans-serif';
+  const words = screenText().split(' '); let line = '', ly = CFG.screen[1] + 24;
+  for (const w of words) { const t = line ? line + ' ' + w : w; if (g.measureText(t).width > CFG.screen[2] - 12) { g.fillText(line, CFG.screen[0] + 6, ly); line = w; ly += 19; } else line = t; }
+  g.fillText(line, CFG.screen[0] + 6, ly);
+  }
+  // flow lines on the pavement
+  if (S.flow) { g.strokeStyle = 'rgba(80,230,255,0.6)'; g.lineWidth = 2;
+    for (const b of [CFG.front, CFG.far]) for (const y0 of b) { const y = y0 + 2; g.beginPath(); g.setLineDash([10, 8]); g.moveTo(0, y); g.lineTo(1536, y); g.stroke(); } g.setLineDash([]); }
+  g = main; g.drawImage(bcv, 0, 0);
+  // pods
+  for (const p of pods) { if (!podImg.complete) break; const w = podImg.width * 3, hh = podImg.height * 3, y = LANES[p.lane];
+    g.save(); if (p.lane) { g.translate(p.x, 0); g.scale(-1, 1); g.drawImage(podImg, -w / 2, y - hh, w, hh); } else g.drawImage(podImg, p.x - w / 2, y - hh, w, hh); g.restore(); }
+  // people, back to front
+  const list = [];
+  const facing = p => {
+    if (p.kind === 'walker') return 'right';
+    if (p.idle > 0 || !p.path || !p.path.length) return S.curation ? 'back' : 'front';
+    return Math.abs(p.vy || 0) > Math.abs(p.vx || 0) * 1.2 ? (p.vy < 0 ? 'back' : 'front') : 'right';
+  };
+  for (const p of people) list.push([p, facing(p), p.idle <= 0 && (p.kind === 'walker' || (p.path && p.path.length))]);
+  if (S.ration && CFG.queue) queue.forEach((q, i) => { if (i < 14) list.push([q, 'back', false]); });
+  for (const p of gather) if (p.active || disperse > 0) {
+    const mv = Math.hypot(p.vx || 0, p.vy || 0) > 0.3;
+    const d = !mv ? 'front' : Math.abs(p.vy) > Math.abs(p.vx) * 1.2 ? (p.vy < 0 ? 'back' : 'front') : 'right';
+    list.push([p, d, mv]);
+  }
+  for (const r of CFG.occ || []) list.push([{ y: r[3], occ: r }]);
+  list.sort((a, b) => a[0].y - b[0].y);
+  bubbles = [];
+  for (const [p, d, m] of list) {
+    if (p.occ) { const [x0, y0, x1, y1] = p.occ; g.drawImage(bcv, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0); }
+    else sprite(p, d, m);
+  }
+  // drones with their shadows
+  for (const d of drones) { if (!d.on || !droneImg.complete) continue; const w = droneImg.width * 2.2, hh = droneImg.height * 2.2;
+    g.fillStyle = 'rgba(10,20,40,0.18)'; g.beginPath(); g.ellipse(d.x, d.y + 260, w * 0.3, 4, 0, 0, 7); g.fill();
+    g.drawImage(droneImg, d.x - w / 2, d.y - hh / 2, w, hh); }
+  for (const [x, y, t] of bubbles) bubble(x, y, t);
+  if (SHOWGRID) { g.strokeStyle = '#ff3c78'; g.lineWidth = 2; for (const r of CFG.occ || []) g.strokeRect(r[0], r[1], r[2] - r[0], r[3] - r[1]);
+    g.fillStyle = 'rgba(0,255,120,0.25)'; for (const c of walkCells) g.fillRect((c % GW) * CELL, Math.floor(c / GW) * CELL, CELL - 1, CELL - 1); }
+  // labels
+  $('timeV').textContent = `${Math.floor(S.time)}:${String(Math.round((S.time % 1) * 60)).padStart(2, '0')}`;
+  $('happyV').textContent = S.happy; $('autoV').textContent = S.auto; $('tensV').textContent = STAGES[S.tens];
+}
+function loop(now) { const dt = Math.min(0.05, (now - t0) / 1000); t0 = now; update(dt); draw(); requestAnimationFrame(loop); }
+bg.onload = () => { setBlock(block); requestAnimationFrame(loop); };
+</script>
+</body>
+</html>

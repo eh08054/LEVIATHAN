@@ -1,0 +1,41 @@
+var c = UnityEngine.Object.FindAnyObjectByType<Sector.ModelCity.ModelCity>();
+var prm = System.IO.File.ReadAllText("C:/Users/eh080/AppData/Local/Temp/claude/09ed939f4dd96b9a/a769ce7c-62d0-4a9d-b3a9-a0f12f1c668f/scratchpad/capparams.txt").Trim().Split(' ');
+float pd = float.Parse(prm[0]), pty = float.Parse(prm[1]), ptilt = float.Parse(prm[2]); int PW = int.Parse(prm[3]), PH = int.Parse(prm[4]); string outPng = prm[5], outTxt = prm[6];
+var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+var T = typeof(Sector.ModelCity.ModelCity);
+if (T.GetField("cube", bf).GetValue(c) == null) T.GetMethod("Start", bf).Invoke(c, null);
+c.hour = 16.5f; c.speed = 0; c.layer = "none";
+T.GetField("dist", bf).SetValue(c, pd); T.GetField("yaw", bf).SetValue(c, 0f); T.GetField("tilt", bf).SetValue(c, ptilt);
+var pr = c.PlanRect; T.GetField("target", bf).SetValue(c, new UnityEngine.Vector2(pr.width / 2, pr.height * pty));
+T.GetField("goal", bf).SetValue(c, null);
+T.GetMethod("Update", bf).Invoke(c, null);
+if (c.hud != null) c.hud.SetShown(false);
+var cam = c.Cam; int W = PW, H = PH;
+var rt = new UnityEngine.RenderTexture(W, H, 24, UnityEngine.RenderTextureFormat.ARGB32);
+rt.antiAliasing = 4;
+cam.targetTexture = rt; cam.aspect = (float)W / H; cam.Render();
+UnityEngine.RenderTexture.active = rt;
+var tex = new UnityEngine.Texture2D(W, H, UnityEngine.TextureFormat.RGB24, false);
+tex.ReadPixels(new UnityEngine.Rect(0, 0, W, H), 0, 0); tex.Apply();
+System.IO.File.WriteAllBytes(outPng, tex.EncodeToPNG());
+// each city block's ground corners in image fractions (x right, y down), for district shapes on the painting
+var sb = new System.Text.StringBuilder();
+sb.AppendLine("# Unity ModelCity home view: hour 16.5, dist " + pd + ", target y " + pty + ", tilt " + ptilt + ", " + W + "x" + H + "; lot corners in image fractions");
+foreach (var lot in c.LotRects())
+{
+  var r = lot.Item1; sb.Append(lot.Item2);
+  foreach (var p in new[] { new UnityEngine.Vector3(r.xMin, 0, r.yMin), new UnityEngine.Vector3(r.xMax, 0, r.yMin), new UnityEngine.Vector3(r.xMax, 0, r.yMax), new UnityEngine.Vector3(r.xMin, 0, r.yMax) })
+  { var v = cam.WorldToViewportPoint(p); sb.Append(" " + v.x.ToString("0.0000", System.Globalization.CultureInfo.InvariantCulture) + " " + (1 - v.y).ToString("0.0000", System.Globalization.CultureInfo.InvariantCulture)); }
+  sb.Append("\n");
+}
+var rx = (System.Collections.Generic.List<float>)T.GetField("roadsX", bf).GetValue(c);
+var ry = (System.Collections.Generic.List<float>)T.GetField("roadsY", bf).GetValue(c);
+System.Func<UnityEngine.Vector3, string> F = p => { var v = cam.WorldToViewportPoint(p); return v.x.ToString("0.0000", System.Globalization.CultureInfo.InvariantCulture) + " " + (1 - v.y).ToString("0.0000", System.Globalization.CultureInfo.InvariantCulture); };
+for (int i = 0; i < rx.Count; i++) sb.Append("road " + (i % 3 == 0 ? 1 : 0) + " " + F(new UnityEngine.Vector3(rx[i] * 0.1f, 0, 0)) + " " + F(new UnityEngine.Vector3(rx[i] * 0.1f, 0, pr.height)) + "\n");
+for (int i = 0; i < ry.Count; i++) sb.Append("road " + (i % 3 == 0 ? 1 : 0) + " " + F(new UnityEngine.Vector3(0, 0, ry[i] * 0.1f)) + " " + F(new UnityEngine.Vector3(pr.width, 0, ry[i] * 0.1f)) + "\n");
+sb.Append("plate " + F(new UnityEngine.Vector3(-4, 0, pr.height + 4)) + " " + F(new UnityEngine.Vector3(pr.width + 4, 0, pr.height + 4)) + " " + F(new UnityEngine.Vector3(pr.width + 4, 0, -4)) + " " + F(new UnityEngine.Vector3(-4, 0, -4)) + "\n");
+sb.Append("ring " + F(new UnityEngine.Vector3(c.CentreOf("A").x, 29f, c.CentreOf("A").z)) + " " + F(new UnityEngine.Vector3(c.CentreOf("A").x + 15f, 29f, c.CentreOf("A").z)) + "\n");
+foreach (var k in Sector.ModelCity.ModelCity.Keys) { var v = cam.WorldToViewportPoint(c.CentreOf(k)); sb.Append("pin " + k + " " + v.x.ToString("0.0000", System.Globalization.CultureInfo.InvariantCulture) + " " + (1 - v.y).ToString("0.0000", System.Globalization.CultureInfo.InvariantCulture) + "\n"); }
+System.IO.File.WriteAllText(outTxt, sb.ToString());
+cam.targetTexture = null; cam.ResetAspect(); UnityEngine.RenderTexture.active = null; rt.Release();
+return "ok " + cam.aspect;
