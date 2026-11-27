@@ -1488,6 +1488,21 @@
     -unity-background-scale-mode: stretch-to-fill;
 }
 
+/* block pictures: cut-out layers that stand in front of people, and the AI's line on the street screen */
+.sim-occ {
+    -unity-background-scale-mode: stretch-to-fill;
+}
+
+.sim-screen-line {
+    position: absolute;
+    padding: 4px 6px;
+    white-space: normal;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: rgb(13, 58, 92);
+    background-color: rgba(191, 239, 255, 0.92);
+}
+
 .sim-marker {
     position: absolute;
     left: 50%;
@@ -4440,3 +4455,36 @@
 /* the district screen's painted buildings and the layer of holograms over them */
 .iso-layer { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
 .iso-sprite { position: absolute; background-size: 100% 100%; }
+
+/* Main screen view switch (OpsModelView.cs): the painting (option A) or the 3D model (option C). */
+.view-switch {
+    flex-direction: row;
+    flex-shrink: 0;
+    margin-right: 16px;
+    padding: 2px;
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: rgba(53, 201, 232, 0.3);
+    background-color: rgba(5, 12, 26, 0.6);
+}
+
+.view-tab {
+    margin: 0;
+    padding: 4px 10px;
+    border-width: 0;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0);
+    color: var(--text-2);
+    font-size: 12px;
+}
+
+.view-tab--on {
+    background-color: var(--select);
+    color: #FFFFFF;
+}
+
+
+/* 입체 모형 view: the 3D camera and the model HUD show through the game's root. */
+.ops--model {
+    background-color: rgba(0, 0, 0, 0);
+}

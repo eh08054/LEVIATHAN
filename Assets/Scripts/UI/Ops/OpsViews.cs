@@ -15,8 +15,15 @@ namespace Sector.UI
         // The painting's district outlines, stretched over the city area (x 0..1, y 0.24..0.86) onto a 100 x 100 grid.
         public static Vector2[][] GridShapes => Shapes;
 
-        static readonly Vector2[][] Shapes = OpsScreen.ZoneOutlines
-            .Select(shape => shape.Select(v => new Vector2(v.x * 100f, (v.y - 0.24f) / 0.62f * 100f)).ToArray()).ToArray();
+        static Vector2[][] shapes;
+        static Vector2[][] Shapes => shapes ??= Grid(OpsScreen.ZoneOutlines);
+        // stretch the outlines' bounding box onto the grid (the city sits in a band of the painting)
+        static Vector2[][] Grid(Vector2[][] src)
+        {
+            var all = src.SelectMany(s => s).ToArray();
+            float x0 = all.Min(v => v.x), x1 = all.Max(v => v.x), y0 = all.Min(v => v.y), y1 = all.Max(v => v.y);
+            return src.Select(shape => shape.Select(v => new Vector2((v.x - x0) / (x1 - x0) * 100f, (v.y - y0) / (y1 - y0) * 100f)).ToArray()).ToArray();
+        }
 
         readonly Func<int, Color> colorOf;
         readonly Func<int, bool> isOpen;

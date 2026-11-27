@@ -109,6 +109,8 @@ namespace Sector.UI
                 return;
             sim.SetTime(dayClock / DaySeconds);
             TickDistrictKeys();
+            TickMainHud();
+            TickModelView();
             if (session.IsOver)
             {
                 if (!endShown && !overlayOpen)
@@ -216,6 +218,7 @@ namespace Sector.UI
             pauseButton.EnableInClassList("ops-time-button--on", paused);
             for (int i = 0; i < Speeds.Length; i++)
                 speedButtons[i].EnableInClassList("ops-time-button--on", !paused && speed == Speeds[i]);
+            RefreshMainHudControls();
         }
 
         void Chatter()

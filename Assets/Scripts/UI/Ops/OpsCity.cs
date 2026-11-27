@@ -15,7 +15,7 @@ namespace Sector.UI
     {
         const float LeaderLength = 30f;
         // The AI operations center (the tower with the cyan ring, the 관리 district's pin) in image fractions.
-        static readonly Vector2 CenterPin = new Vector2(0.507f, 0.41f);
+        static Vector2 CenterPin => UsingV8 ? V8.Center : new Vector2(0.507f, 0.41f);
 
         sealed class ZoneMarker
         {
@@ -43,7 +43,10 @@ namespace Sector.UI
         VisualElement cityCanvas;
         float cityTime;
         float lightLevel = 1f;
+        // the v7 night painting was dimmed toward blue; the current look-target painting is shown as drawn
+        // set in Build (UsingV8 loads a resource, which a MonoBehaviour field initializer must not do)
         Color baseTint = new Color32(178, 182, 196, 255);
+        float nightLevel;
 
         // Count-up: every animated label moves toward its target a little each frame.
         readonly Dictionary<Label, (float shown, float target, Func<float, string> format)> counters =
@@ -87,7 +90,7 @@ namespace Sector.UI
             }
 
             // Drone lights drift across the upper sky of the painting (they move with the camera).
-            for (int i = 0; i < 7; i++)
+            for (int i = 0; i < (UsingV8 ? 0 : 7); i++)
             {
                 var dot = Add(cityLayers[0], "drone");
                 dot.pickingMode = PickingMode.Ignore;
@@ -97,6 +100,7 @@ namespace Sector.UI
                     Random.Range(0.012f, 0.03f), Random.value));
             }
 
+            BuildCityLife();
             root.schedule.Execute(CityTick).Every(33);
         }
 
@@ -186,7 +190,16 @@ namespace Sector.UI
             var tint = new Color(baseTint.r * lightLevel, baseTint.g * lightLevel, Mathf.Min(1f, baseTint.b * (lightLevel * 0.9f + 0.1f)), 1f);
             foreach (var layer in cityLayers)
                 layer.style.unityBackgroundImageTintColor = tint;
+            // night picture: in by 20:00, out by 6:00; eased slowly so a fast clock reads as a gentle drift
+            if (cityNight != null)
+            {
+                float hour = day * 24f;
+                float want = hour >= 20f || hour < 5f ? 1f : hour < 7f ? (7f - hour) / 2f : hour >= 17f ? (hour - 17f) / 3f : 0f;
+                nightLevel = Mathf.Lerp(nightLevel, want, dt * 0.5f);
+                cityNight.style.opacity = nightLevel;
+            }
             TickDistrictLayers(dt, tint);
+            TickCityLife();
 
             foreach (var (dot, from, to, speed, phase) in drones)
             {
@@ -239,8 +252,10 @@ namespace Sector.UI
 
         // Zoom 1 shows the whole painting (the districts plus the city around them); HomeZoom frames the districts
         // (the painting's middle 75%).
-        const float MinZoom = 1f, HomeZoom = 1.2f, MaxZoom = 3.4f;
-        float zoom = HomeZoom, zoomTarget = HomeZoom;
+        const float MinZoom = 1f, MaxZoom = 3.4f;
+        // the current painting opens whole, as in the B mock-up; the v7 painting opened a little zoomed in
+        static float HomeZoom => UsingV8 ? 1f : 1.2f;
+        float zoom = 1f, zoomTarget = 1f;   // set to HomeZoom in Build (no resource loads in field initializers)
 
         void ResetView()
         {
@@ -342,7 +357,7 @@ namespace Sector.UI
         void DrawCity(MeshGenerationContext ctx)
         {
             var p = ctx.painter2D;
-            if (markers.Count == 0)
+            if (markers.Count == 0 || !PaintingDistricts)
                 return;
             var center = PinAt(CenterPin);
 

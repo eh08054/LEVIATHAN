@@ -20,13 +20,16 @@ namespace Sector.UI
         static readonly Color Warn = new Color32(238, 92, 92, 255);
 
         // Each district's landmark on city_main_v7 (image fractions, 4096 x 2731), Society.Zones order.
-        static readonly Vector2[] ZonePins =
+        static Vector2[] ZonePins => UsingV8 ? V8.Pins : V7Pins;
+        static readonly Vector2[] V7Pins =
         {
             new Vector2(0.505f, 0.5f), new Vector2(0.30f, 0.465f), new Vector2(0.507f, 0.41f), new Vector2(0.31f, 0.69f),
             new Vector2(0.72f, 0.71f), new Vector2(0.27f, 0.355f), new Vector2(0.285f, 0.24f), new Vector2(0.53f, 0.225f),
             new Vector2(0.70f, 0.32f), new Vector2(0.715f, 0.50f), new Vector2(0.765f, 0.235f),
         };
-        const float CityAspect = 1536f / 1024f;
+        // the painting's width / height, read from the texture (v7 3:2, v8 16:9)
+        float CityAspect = 1.5f;
+        VisualElement cityNight;
         VisualElement cityView;
         readonly List<VisualElement> cityLayers = new List<VisualElement>();
 
@@ -93,8 +96,25 @@ namespace Sector.UI
             cityView = Add(root, "backdrop");
             var vista = Resources.Load<Texture2D>("Macro/city_main");
             if (vista != null)
+            {
                 cityView.style.backgroundImage = new StyleBackground(vista);
+                CityAspect = vista.width / (float)vista.height;
+                // the v7 night painting was dimmed toward blue; v8 is shown as drawn (its night is its own picture)
+                if (UsingV8) baseTint = new Color32(236, 238, 242, 255);
+                zoom = zoomTarget = HomeZoom;
+            }
             cityLayers.Add(cityView);
+            // the night picture (same layout) crossfades over the day one with the hour (OpsCity.CityTick)
+            var night = Resources.Load<Texture2D>("Macro/city_main_night");
+            if (night != null)
+            {
+                cityNight = new VisualElement { pickingMode = PickingMode.Ignore };
+                cityNight.style.position = Position.Absolute;
+                cityNight.style.left = 0; cityNight.style.top = 0; cityNight.style.right = 0; cityNight.style.bottom = 0;
+                cityNight.style.backgroundImage = new StyleBackground(night);
+                cityNight.style.opacity = 0;
+                cityView.Add(cityNight);
+            }
             BuildPanZoom();
             var vignette = Add(root, "vignette");
             vignette.pickingMode = PickingMode.Ignore;
@@ -134,6 +154,7 @@ namespace Sector.UI
             toast.pickingMode = PickingMode.Ignore;
             toast.style.display = DisplayStyle.None;
             BuildFx();
+            BuildMainHud();
         }
 
         // Columns that hold the floating panels; they stretch with the screen so panels never overlap.
@@ -195,6 +216,7 @@ namespace Sector.UI
             var brandText = Add(brand, "brand-text");
             Text(brandText, "LEVIATHAN", "brand-title");
             Text(brandText, "SECTOR 7 시범 운영 구역", "brand-sub");
+            BuildViewSwitch(top);
 
             var energy = Add(top, "resource");
             Badge(energy, IconKind.Bolt, Caution, "badge badge--small");
@@ -501,6 +523,7 @@ namespace Sector.UI
             RefreshResident();
 
             RefreshMenu();
+            RefreshMainHud();
             sim.SetPopulation(session.SampleCount, session.Zones);
             sim.SetZoneStages(session.TensionStage);
         }

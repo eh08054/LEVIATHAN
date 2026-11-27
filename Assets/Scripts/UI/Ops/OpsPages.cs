@@ -97,6 +97,7 @@ namespace Sector.UI
                 simHome.Add(sim);
                 sim.SetTracking(false);
             }
+            ApplyViewMode();
             RenderPage();
         }
 
@@ -113,6 +114,14 @@ namespace Sector.UI
             var scroll = pageView.Q<ScrollView>();
             var offset = scroll != null ? scroll.scrollOffset : Vector2.zero;
             pageView.Clear();
+            pageView.RemoveFromClassList("pg2");
+            if (RenderPage2())
+            {
+                var after2 = pageView.Q<ScrollView>();
+                if (after2 != null)
+                    after2.schedule.Execute(() => after2.scrollOffset = offset);
+                return;
+            }
             var (_, icon, label, english) = Menu.First(m => m.page == currentPage);
             var head = Add(pageView, "page-head");
             Badge(head, icon, null, "badge badge--large");

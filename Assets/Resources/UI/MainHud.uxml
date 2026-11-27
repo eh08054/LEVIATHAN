@@ -1,0 +1,65 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <!-- Main screen HUD, option B (game HUD), drawn after Tools/Art/proto/ui_mock.html?v=b. Layout lives here (open
+         in UI Builder); OpsMainHud.cs fills the data, the repeated items (gauges, side bars, feed cards, commands)
+         and wires the buttons. Styles: Assets/UI/MainHud.uss. -->
+    <Style src="project://database/Assets/UI/MainHud.uss" />
+    <ui:VisualElement name="main-hud" class="mh" picking-mode="Ignore">
+        <ui:VisualElement class="mh-shade mh-shade--top" picking-mode="Ignore" />
+        <ui:VisualElement class="mh-shade mh-shade--bottom" picking-mode="Ignore" />
+
+        <!-- model view: the city on a monitor (a cyan line) with index bars on both sides -->
+        <ui:VisualElement name="bezel" class="mh-bezel" picking-mode="Ignore">
+            <ui:VisualElement name="power" class="mh-power" picking-mode="Ignore" />
+        </ui:VisualElement>
+        <ui:VisualElement name="side-left" class="mh-side mh-side--left" picking-mode="Ignore" />
+        <ui:VisualElement name="side-right" class="mh-side mh-side--right" picking-mode="Ignore" />
+
+        <ui:VisualElement name="emblem" class="mh-emblem">
+            <ui:VisualElement name="stage-ring" class="mh-emblem-ring" picking-mode="Ignore" />
+            <ui:VisualElement class="mh-emblem-orb" picking-mode="Ignore" />
+        </ui:VisualElement>
+        <ui:VisualElement class="mh-stage" picking-mode="Ignore">
+            <ui:Label text="LEVIATHAN · 섹터 알파" class="mh-stage-kicker" />
+            <ui:Label name="stage" text="위임 1단계" class="mh-stage-value" />
+            <ui:VisualElement name="stage-cells" class="mh-cells" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="clock" class="mh-clock">
+            <ui:Label name="date" text="2071. 3. 14   16:00" class="mh-date num" />
+            <ui:VisualElement name="speeds" class="mh-speeds">
+                <ui:Button name="pause" text="▶" class="mh-round" />
+                <ui:Button name="speed-1" text="1×" class="mh-round" />
+                <ui:Button name="speed-2" text="2×" class="mh-round" />
+                <ui:Button name="speed-4" text="4×" class="mh-round" />
+            </ui:VisualElement>
+            <ui:Label name="broadcast" text="“오늘도 힘찬 하루”" class="mh-broadcast" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="crisis" class="mh-crisis">
+            <ui:Label name="crisis-dd" text="D-12" class="mh-crisis-dd num" />
+            <ui:VisualElement class="mh-crisis-text" picking-mode="Ignore">
+                <ui:Label name="crisis-title" text="위기 예보" class="mh-crisis-title" />
+                <ui:Label name="crisis-sub" text="준비 40%" class="mh-crisis-sub" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="resources" class="mh-res">
+            <ui:VisualElement name="res-energy" class="mh-chip"><ui:VisualElement name="icon" class="mh-chip-icon mh-chip-icon--energy" /><ui:Label name="value" text="100" class="mh-chip-value num" /></ui:VisualElement>
+            <ui:VisualElement name="res-info" class="mh-chip"><ui:VisualElement name="icon" class="mh-chip-icon mh-chip-icon--info" /><ui:Label name="value" text="24" class="mh-chip-value num" /></ui:VisualElement>
+            <ui:VisualElement name="res-pop" class="mh-chip"><ui:VisualElement name="icon" class="mh-chip-icon mh-chip-icon--pop" /><ui:Label name="value" text="10.0만" class="mh-chip-value num" /></ui:VisualElement>
+            <ui:Button name="menu" text="≡" class="mh-round mh-menu" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="gauges" class="mh-gauges" />
+        <ui:VisualElement name="feed" class="mh-feed" picking-mode="Ignore" />
+        <ui:VisualElement name="mini" class="mh-mini" />
+        <ui:VisualElement name="dock" class="mh-dock" />
+
+        <ui:VisualElement name="corner" class="mh-corner">
+            <ui:VisualElement name="layers" class="mh-seg mh-seg--layers" />
+            <ui:VisualElement name="views" class="mh-seg mh-seg--views" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="system-menu" class="mh-sysmenu" />
+    </ui:VisualElement>
+</ui:UXML>

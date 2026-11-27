@@ -16,7 +16,44 @@ namespace Sector.UI
         // Tools/Art/painted/ui/city_main_v7.png, rounded (corners kept in Tools/Art/district_layers.py). Society.Zones order.
         internal static Vector2[][] ZoneOutlines => ZoneShapes;
 
-        static readonly Vector2[][] ZoneShapes =
+        // v8 (2026-11-27): the city picture is drawn over the Unity model's home view, so the districts come from the
+        // model: Resources/Map/zones_v8.txt (Tools/Art/city_v8_zones.py) gives each district's outline (the first
+        // polygon of a district is its shape here), pin and the AI centre. Without the file the v7 tracing stays.
+        static V8Map v8;
+        sealed class V8Map { public Vector2[][] Shapes; public Vector2[] Pins; public Vector2 Center; }
+        static V8Map V8 => v8 ??= LoadV8();
+        static bool UsingV8 => V8.Shapes != null;
+        static V8Map LoadV8()
+        {
+            var m = new V8Map();
+            var file = Resources.Load<TextAsset>("Map/zones_v8");
+            if (file == null)
+                return m;
+            var shapes = new Vector2[V7Shapes.Length][]; var pins = new Vector2[V7Shapes.Length];
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
+            foreach (var line in file.text.Split('\n'))
+            {
+                var f = line.Trim().Split(' ');
+                if (f.Length < 3 || f[0].StartsWith("#")) continue;
+                if (f[0] == "center") { m.Center = new Vector2(float.Parse(f[1], inv), float.Parse(f[2], inv)); continue; }
+                if (f[0] != "pin" && f[0] != "zone") continue;   // road / ring lines are for OpsCityLife
+                int z = int.Parse(f[1]);
+                if (z < 0 || z >= shapes.Length) continue;
+                if (f[0] == "pin") pins[z] = new Vector2(float.Parse(f[2], inv), float.Parse(f[3], inv));
+                else if (f[0] == "zone" && shapes[z] == null)
+                {
+                    var pts = new Vector2[(f.Length - 2) / 2];
+                    for (int i = 0; i < pts.Length; i++) pts[i] = new Vector2(float.Parse(f[2 + i * 2], inv), float.Parse(f[3 + i * 2], inv));
+                    shapes[z] = pts;
+                }
+            }
+            if (shapes.Any(s => s == null)) return m;
+            m.Shapes = shapes; m.Pins = pins;
+            return m;
+        }
+        static Vector2[][] ZoneShapes => UsingV8 ? V8.Shapes : V7Shapes;
+
+        static readonly Vector2[][] V7Shapes =
         {
             new[] { V(0.4344f, 0.489f), V(0.4242f, 0.5019f), V(0.4167f, 0.5175f), V(0.4128f, 0.5365f), V(0.4161f, 0.556f), V(0.4291f, 0.5706f), V(0.4548f, 0.5799f), V(0.5092f, 0.5828f), V(0.5636f, 0.5799f), V(0.5896f, 0.5706f), V(0.6026f, 0.556f), V(0.6056f, 0.5365f), V(0.6013f, 0.5175f), V(0.5942f, 0.5019f), V(0.5844f, 0.489f), V(0.5758f, 0.4731f), V(0.5636f, 0.4585f), V(0.5474f, 0.4487f), V(0.5092f, 0.4444f), V(0.471f, 0.4487f), V(0.4548f, 0.4585f), V(0.4426f, 0.4731f) },   // 0 문화·여가
             new[] { V(0.2089f, 0.4597f), V(0.1944f, 0.4706f), V(0.1889f, 0.4788f), V(0.1817f, 0.4869f), V(0.1813f, 0.4964f), V(0.1871f, 0.5032f), V(0.2306f, 0.5236f), V(0.2669f, 0.544f), V(0.2941f, 0.5603f), V(0.3031f, 0.5617f), V(0.314f, 0.5549f), V(0.3575f, 0.5304f), V(0.3938f, 0.5059f), V(0.4101f, 0.4842f), V(0.4173f, 0.4624f), V(0.4137f, 0.4516f), V(0.4083f, 0.4434f), V(0.3992f, 0.4339f), V(0.2955f, 0.3971f) },   // 1 상업
@@ -56,9 +93,19 @@ namespace Sector.UI
             return inside;
         }
 
+        // The district outlines, pins, layers and hit shapes (ZoneShapes, ZonePins, Resources/Map) were traced on the
+        // city_main_v7 painting. Since 2026-11-27 the painting is the model's look target (Tools/Art/painted/model/
+        // model_target.png) until the new city picture is made, so they are off: no hover, click, pins, washes.
+        // Turn back on once the shapes are recomputed for the new picture (from the 3D model's projection).
+        static readonly bool PaintingDistricts = true;
+        // the v7 per-district cut-outs and glows (Resources/Map/layers.txt) fit only the v7 painting
+        static bool V7Layers => !UsingV8;
+
         // Which district is under a screen position (world coordinates), or -1.
         int ZoneAt(Vector2 world)
         {
+            if (!PaintingDistricts)
+                return -1;
             var r = cityView.worldBound;
             if (r.width <= 0f)
                 return -1;
@@ -93,7 +140,7 @@ namespace Sector.UI
         void BuildDistrictLayers()
         {
             var index = Resources.Load<TextAsset>("Map/layers");
-            if (index == null)
+            if (index == null || !PaintingDistricts || !V7Layers)
                 return;
             var host = new VisualElement { pickingMode = PickingMode.Ignore };
             host.AddToClassList("district-layers");
@@ -469,6 +516,14 @@ namespace Sector.UI
             for (int z = 0; z < ZoneShapes.Length && z < markers.Count; z++)
             {
                 var m = markers[z];
+                if (!PaintingDistricts)
+                {
+                    m.InView = true; m.Shown = false;
+                    m.Tag.style.display = DisplayStyle.None;
+                    edgePointers[z].style.display = DisplayStyle.None;
+                    zoneBadges[z].style.display = DisplayStyle.None;
+                    continue;
+                }
                 // The districts read from their boundaries; pins, names and badges only on the full map.
                 // Everywhere else the details come up on hover (ShowMapTip).
                 var world = zoneLayer.LocalToWorld(m.Anchor);
@@ -509,7 +564,7 @@ namespace Sector.UI
             // A crisis three weeks away shows a countdown where it will start.
             var crisis = session.NextCrisis;
             int days = crisis == null ? int.MaxValue : session.CrisisDay(crisis) - session.Day;
-            if (crisis != null && days <= 21 && mapMode)
+            if (crisis != null && days <= 21 && mapMode && PaintingDistricts)
             {
                 var at = crisis.Zone >= 0 && crisis.Zone < markers.Count ? markers[crisis.Zone].Anchor : PinAt(CenterPin);
                 crisisBadge.style.display = DisplayStyle.Flex;
@@ -579,7 +634,7 @@ namespace Sector.UI
 
         void DrawMap(MeshGenerationContext ctx)
         {
-            if (session == null || cityView == null)
+            if (session == null || cityView == null || !PaintingDistricts)
                 return;
             var p = ctx.painter2D;
             p.lineJoin = LineJoin.Round;
